@@ -1,0 +1,1 @@
+{"vocab_size": 10000, "layer_sizes": {"embedding": 128, "lstm1": 256, "lstm2": 256}}
