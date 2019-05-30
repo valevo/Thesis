@@ -45,7 +45,7 @@ class ImprovedSpectrum:
             sents1, sents2 = self.split(corpus)
             words1, words2 = self.tokens_from(sents1, to_list=True),\
                         self.tokens_from(sents2, to_list=True)
-        
+            
         propensity_f = get_freqs if self.freqs else get_probs
 
         
@@ -99,6 +99,7 @@ class ImprovedSpectrum:
         toks = (w for s in corpus for w in s)
         if to_list:
             return list(toks)
+        print("HELLO")
         return toks
     
     
