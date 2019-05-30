@@ -46,10 +46,10 @@ class ImprovedHeap:
     
     def estimate_all(self, corpus):
         for i in self.domain:
-            print("\n", i)
+            print("\n heap:", i)
             t0 = time()
             yield len(set(self.n_tokens_from_randomised(corpus, i)))
-            print(time() - t0)
+            print("heap:", time() - t0)
             
             
     def estimate(self, corpus, freq):
