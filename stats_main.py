@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     corpus_stats = CorpusStats(length_matched_articles, sent_len_dist=True)
     
-    print("\t" + lang + " TIME: " + time() - t0)
+    print("\t" + lang + " TIME: ", time() - t0)
     
     #%% BASIC ZIPF
     print("\n" + lang + ": BASIC ZIPF", flush=True)
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     all_sent_rank_freq_suite = ImprovedSpectrumSuite(all_sents_ranks_freqs,
                                                      names=list(rng))
     
-    print("\t" + lang + " TIME: " + time() - t0)
+    print("\t" + lang + " TIME: ", time() - t0)
     
     print(lang + ": Estimated SENTS RANKS FREQS suite", flush=True)
     
@@ -150,7 +150,7 @@ if __name__ == "__main__":
                                        names=list(map(str, rng)),
                                        suite_name="convergence_ranks")
     
-    print("\t" + lang + " TIME: " + time() - t0)
+    print("\t" + lang + " TIME: ", time() - t0)
     
     print(lang + ": Estimated SENT RANKS PROBS convergence", flush=True)
     
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     rng = (np.linspace(0.0, 1.0, 10)*n).astype("int")
     heaps = tuple(ImprovedHeap(length_matched_sents, ns=rng, freq=None)
                     for _ in range(20))
-    print("\t" + lang + " TIME: " + time() - t0)
+    print("\t" + lang + " TIME: ", time() - t0)
     print(lang + ": Estimated HEAP suite")
     
     t0 = time()
