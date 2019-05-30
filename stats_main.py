@@ -25,7 +25,7 @@ def parse_args():
 
 def get_length_matched(corpus, k, sents=True):
     corp_list = list(corpus)
-    rand_inds = rand.choice(len(corpus), size=len(corpus), replace=False)
+    rand_inds = rand.choice(len(corp_list), size=len(corp_list), replace=False)
     rand_corp_iter = (corp_list[i] for i in rand_inds)
     tok_count_f = (lambda a: len([w for s in a for w in s])) if not sents else len
 

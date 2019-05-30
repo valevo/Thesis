@@ -30,8 +30,11 @@ class ImprovedHeap:
     
     def estimate(self, corpus, freq):
         for i in self.domain:
-            cur_corp = self.tokens_from(rand.permutation(corpus), i)
+            corp_ls = list(corpus)
+            rand_inds = rand.choice(len(corp_ls), size=len(corp_ls), replace=False)
+            rand_corp_iter = (corp_ls[i] for i in rand_inds)
             
+            cur_corp = self.tokens_from(rand_corp_iter, i)
             counts = Counter(w for s in cur_corp for w in s)
             
             yield sum(map(lambda v: int(v == freq), counts.values()))
@@ -40,9 +43,10 @@ class ImprovedHeap:
             
     def estimate_all(self, corpus):
         for i in self.domain:
-#            print(i)
-            rand_inds = rand.choice(len(corpus), size=len(corpus), replace=False)
-            rand_corp_iter = (corpus[i] for i in rand_inds)
+            corp_ls = list(corpus)
+            rand_inds = rand.choice(len(corp_ls), size=len(corp_ls), replace=False)
+            rand_corp_iter = (corp_ls[i] for i in rand_inds)
+            
             cur_corp = self.tokens_from(rand_corp_iter, i)
             cur_corp = list(cur_corp)
             yield len(set(w for s in cur_corp for w in s))
