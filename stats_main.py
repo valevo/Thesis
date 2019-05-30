@@ -45,7 +45,6 @@ if __name__ == "__main__":
     articles = (a for title, a in wiki)
 
     n = 5*10**7
-    n = 10000
     length_matched_articles = list(get_length_matched(articles, n, sents=False))
     length_matched_sents = [s for a in length_matched_articles for s in a]
 

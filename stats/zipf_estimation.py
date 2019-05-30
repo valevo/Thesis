@@ -99,7 +99,6 @@ class ImprovedSpectrum:
         toks = (w for s in corpus for w in s)
         if to_list:
             return list(toks)
-        print("HELLO")
         return toks
     
     
