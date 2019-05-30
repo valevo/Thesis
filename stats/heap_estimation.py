@@ -6,6 +6,8 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 
+from time import time
+
 class ImprovedHeap:    
     def __init__(self, corpus, ns, freq=None):
         self.domain = ns
@@ -42,14 +44,28 @@ class ImprovedHeap:
             
             
     def estimate_all(self, corpus):
+        t0 = time()
         for i in self.domain:
+            print(i)
             corp_ls = list(corpus)
+            t1 = time() - t0
+            print("list(corpus)", t1)    
             rand_inds = rand.choice(len(corp_ls), size=len(corp_ls), replace=False)
+            t2 = time() - t0 - t1
+            print("rand.choice", t2)
+            
             rand_corp_iter = (corp_ls[i] for i in rand_inds)
             
             cur_corp = self.tokens_from(rand_corp_iter, i)
+            
+            t3 = time() - t0 - t2
+            print("self.tokens_from", t3)
+            
             cur_corp = list(cur_corp)
-            yield len(set(w for s in cur_corp for w in s))
+            cur_V = len(set(w for s in cur_corp for w in s))
+            print("len(set)", time() - t0 - t3)
+            
+            yield cur_V
             
     def plot(self, log=True, lbl=None, show=False):
         plot_f = plt.loglog if log else plt.plot
@@ -65,7 +81,7 @@ class ImprovedHeap:
         
     
     
-class ImprovedHeapSuite:    
+class ImprovedHeapSuite:
     def __init__(self, corpus, ns, freqs):
         self.domain = ns
         self.freqs = freqs
@@ -111,3 +127,4 @@ class ImprovedHeapSuite:
 
 
             
+    

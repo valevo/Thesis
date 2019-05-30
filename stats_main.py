@@ -72,7 +72,7 @@ if __name__ == "__main__":
     #%% BASIC ZIPF
     print("\n" + lang + ": BASIC ZIPF", flush=True)
     
-    rng = range(30)
+    rng = range(3)
     
     all_sents_ranks_freqs = tuple(ImprovedSpectrum(length_matched_sents,
                                        split_level="sentences", 
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     
     
     rank_specs = []
-    rng = (np.linspace(0.02, 1.0, 30)*n).astype("int")
+    rng = (np.linspace(0.02, 1.0, 3)*n).astype("int")
     
     for m in rng:
         print(m)
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     
     
     freq_specs = []
-    rng = (np.linspace(0.02, 1.0, 30)*n).astype("int")
+    rng = (np.linspace(0.02, 1.0, 3)*n).astype("int")
     
     for m in rng:
         print(m)
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     #%% HEAP
     print("\n" + lang + ": HEAP", flush=True)
     
-    rng = (np.linspace(0.0, 1.0, 1000)*n).astype("int")
+    rng = (np.linspace(0.0, 1.0, 10)*n).astype("int")
     
     
     heaps = tuple(ImprovedHeap(length_matched_sents, ns=rng, freq=None)
