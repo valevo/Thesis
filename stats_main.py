@@ -45,6 +45,7 @@ if __name__ == "__main__":
     articles = (a for title, a in wiki)
 
     n = 5*10**7
+    n = 2000
     length_matched_articles = list(get_length_matched(articles, n, sents=False))
     length_matched_sents = [s for a in length_matched_articles for s in a]
 
@@ -193,11 +194,12 @@ if __name__ == "__main__":
     
     
     
-    suites_to_pkl = [all_sents_ranks_freqs,
-                    rank_specs,
-                    freq_specs,]
+    suites_to_pkl = [all_sent_rank_freq_suite,
+                    rank_suite,
+                    freq_suite]
 
     for suite in suites_to_pkl:
+        print(suite)
         suite.to_pickle(dir_prefix=top_dir+save_dir)
     
 

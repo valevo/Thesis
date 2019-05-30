@@ -182,7 +182,9 @@ class ImprovedSpectrumSuite:
         
         os.makedirs(folder)
         
-        for name, spec in zip(self.names, self.spectra):
+        names = map(str, self.names)
+        
+        for name, spec in zip(names, self.spectra):
             with open(folder + name + ".pkl", "wb") as handle:
                 pickle.dump(spec, handle)
     
