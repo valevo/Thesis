@@ -188,7 +188,7 @@ if __name__ == "__main__":
     heap_hapaxes = ImprovedHeapSuite(length_matched_sents, ns=rng, 
                                      freqs=(1,2,3,4,5,None))
     
-    print("\t" + lang + " TIME: " + time() - t0)
+    print("\t" + lang + " TIME: ", time() - t0)
     print(lang + ": Estimated HEAP HAPAXES", flush=True)
     
     
