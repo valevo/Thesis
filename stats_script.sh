@@ -14,9 +14,9 @@ cd "$TMPDIR"/Thesis
 
 echo "Thesis copied; current dir: `pwd`"
 
-#NO TR VI
 
-for l in EO FI ID KO; do
+#ID KO NO TR VI
+for l in EO FI; do
     echo "RUNNING STAT SCRIPT WITH $l"
     python3.6 stats_main.py --lang=$l &
 done
@@ -25,7 +25,7 @@ echo "WAITING..."
 
 wait
 
-for l in EO FI ID KO; do
+for l in EO FI; do
     echo "COPYING $l"
     cp -rf "$TMPDIR"/Thesis/Results/$l $HOME
 done
