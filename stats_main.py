@@ -25,12 +25,12 @@ def parse_args():
 
 def get_length_matched(corpus, k, sents=True):
     corp_list = list(corpus)
-    perm_corpus = rand.permutation(corp_list)
-
+    rand_inds = rand.choice(len(corpus), size=len(corpus), replace=False)
+    rand_corp_iter = (corp_list[i] for i in rand_inds)
     tok_count_f = (lambda a: len([w for s in a for w in s])) if not sents else len
 
     n_toks = 0
-    for elem in perm_corpus:
+    for elem in rand_corp_iter:
         if n_toks >= k:
             break
             
@@ -74,15 +74,12 @@ if __name__ == "__main__":
     
     rng = range(30)
     
-    all_sents_ranks_freqs = [ImprovedSpectrum(length_matched_sents,
+    all_sents_ranks_freqs = tuple(ImprovedSpectrum(length_matched_sents,
                                        split_level="sentences", 
                                        ranks=True, freqs=True)
-                            for _ in rng]
-    
-    
-    
-    
-    all_sent_rank_freq_suite = ImprovedSpectrumSuite(tuple(all_sents_ranks_freqs),
+                            for _ in rng)
+        
+    all_sent_rank_freq_suite = ImprovedSpectrumSuite(all_sents_ranks_freqs,
                                                      names=list(rng))
     
     print(lang + ": Estimated SENTS RANKS FREQS suite", flush=True)
@@ -145,7 +142,7 @@ if __name__ == "__main__":
     
     
     freq_specs = []
-    rng = (np.linspace(0.02, 1.0, 10)*n).astype("int")
+    rng = (np.linspace(0.02, 1.0, 30)*n).astype("int")
     
     for m in rng:
         print(m)
@@ -154,7 +151,7 @@ if __name__ == "__main__":
                                              split_level="sentences",
                                              ranks=False, freqs=False)
         freq_specs.append(cur_spec)        
-        
+                
     freq_suite = ImprovedSpectrumSuite(tuple(freq_specs),
                                        names=list(map(str, rng)),
                                        suite_name="convergence_freq")
@@ -164,7 +161,7 @@ if __name__ == "__main__":
     #%% HEAP
     print("\n" + lang + ": HEAP", flush=True)
     
-    rng = (np.linspace(0.0, 1.0, 100)*n).astype("int")
+    rng = (np.linspace(0.0, 1.0, 1000)*n).astype("int")
     
     
     heaps = tuple(ImprovedHeap(length_matched_sents, ns=rng, freq=None)
@@ -182,22 +179,28 @@ if __name__ == "__main__":
     #%% SAVE
     
     to_pkl = [corpus_stats,
-              all_sent_rank_freq_suite,
               all_words_ranks_freqs,
               all_articles_ranks_freqs,
               all_sents_ranks_probs,
               all_sents_freq_freqs,
               all_sents_freq_probs,
-              rank_suite,
-              freq_suite,
               heap_hapaxes]
-    
-    
     
     for obj in to_pkl:
         with open(top_dir+save_dir + str(obj) + ".pkl", "wb") as handle:
             pickle.dump(obj, handle)
     
+    
+    
+    
+    suites_to_pkl = [all_sents_ranks_freqs,
+                    rank_specs,
+                    freq_specs,]
+
+    for suite in suites_to_pkl:
+        suite.to_pickle(dir_prefix=top_dir+save_dir)
+    
+
     
     
     with open(top_dir+save_dir + "heap_ls.pkl", "wb") as handle:

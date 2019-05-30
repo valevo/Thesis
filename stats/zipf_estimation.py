@@ -7,6 +7,8 @@ from stats.stat_functions import get_ranks, get_freqs, get_probs, plt,\
 
 #from stats.plotting import hexbin_plot, simple_scatterplot
 
+import os
+import pickle
 
 class ImprovedSpectrum:
     def __init__(self, corpus, split_level="words", ranks=True, freqs=True):        
@@ -169,3 +171,41 @@ class ImprovedSpectrumSuite:
             
     def __repr__(self):
         return "_".join(["ImprovedSpectrumSuite", self.suite_name])
+    
+    
+    def to_pickle(self, dir_prefix="./", error_if_exists=False):
+        
+        folder = dir_prefix + str(self) + "/"
+        
+        if os.path.exists(folder):
+            raise ValueError(folder + " ALREADY EXISTS!")
+        
+        os.makedirs(folder)
+        
+        for name, spec in zip(self.names, self.spectra):
+            with open(folder + name + ".pkl", "wb") as handle:
+                pickle.dump(spec, handle)
+    
+    @classmethod
+    def from_pickle(cls, dir_name, dir_prefix="./", suite_name=None):
+        my_name = dir_name
+        if suite_name:
+            my_name = suite_name
+        
+        names = os.listdir(dir_prefix + dir_name)
+        specs = []
+        for f in names:
+            with open(dir_prefix + dir_name + "/" + f) as handle:
+                cur_spec = pickle.load(handle)
+                specs.append(cur_spec)
+                
+        names = list(map(lambda s: s.split(".pkl")[0], names))
+        
+        return cls(specs, names, suite_name=my_name)
+                
+                
+            
+            
+            
+        
+        

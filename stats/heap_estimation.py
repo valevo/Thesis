@@ -41,7 +41,9 @@ class ImprovedHeap:
     def estimate_all(self, corpus):
         for i in self.domain:
 #            print(i)
-            cur_corp = self.tokens_from(rand.permutation(corpus), i)
+            rand_inds = rand.choice(len(corpus), size=len(corpus), replace=False)
+            rand_corp_iter = (corpus[i] for i in rand_inds)
+            cur_corp = self.tokens_from(rand_corp_iter, i)
             cur_corp = list(cur_corp)
             yield len(set(w for s in cur_corp for w in s))
             
