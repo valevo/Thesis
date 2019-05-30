@@ -11,6 +11,8 @@ from stats.CorpusStats import CorpusStats
 
 from data.WikiReader import wiki_from_pickles
 
+from time import time
+
 
 import pickle
 import os
@@ -66,13 +68,19 @@ if __name__ == "__main__":
     #%% BASIC STATS
     print("\n" + lang + ": BASIC STATS", flush=True)
 
+    t0 = time()
+
     corpus_stats = CorpusStats(length_matched_articles, sent_len_dist=True)
     
+    print("\t" + lang + " TIME: " + time() - t0)
     
     #%% BASIC ZIPF
     print("\n" + lang + ": BASIC ZIPF", flush=True)
     
     rng = range(3)
+    
+    t0 = time()
+
     
     all_sents_ranks_freqs = tuple(ImprovedSpectrum(length_matched_sents,
                                        split_level="sentences", 
@@ -82,7 +90,10 @@ if __name__ == "__main__":
     all_sent_rank_freq_suite = ImprovedSpectrumSuite(all_sents_ranks_freqs,
                                                      names=list(rng))
     
+    print("\t" + lang + " TIME: " + time() - t0)
+    
     print(lang + ": Estimated SENTS RANKS FREQS suite", flush=True)
+    
     
     all_words_ranks_freqs = ImprovedSpectrum(length_matched_sents,
                                              split_level="words",
@@ -122,6 +133,8 @@ if __name__ == "__main__":
     print("\n" + lang + ": CONVERGENCE", flush=True)
     
     
+    t0 = time()
+    
     rank_specs = []
     rng = (np.linspace(0.02, 1.0, 3)*n).astype("int")
     
@@ -137,6 +150,7 @@ if __name__ == "__main__":
                                        names=list(map(str, rng)),
                                        suite_name="convergence_ranks")
     
+    print("\t" + lang + " TIME: " + time() - t0)
     
     print(lang + ": Estimated SENT RANKS PROBS convergence", flush=True)
     
@@ -161,18 +175,20 @@ if __name__ == "__main__":
     #%% HEAP
     print("\n" + lang + ": HEAP", flush=True)
     
+    t0 = time()
+
     rng = (np.linspace(0.0, 1.0, 10)*n).astype("int")
-    
-    
     heaps = tuple(ImprovedHeap(length_matched_sents, ns=rng, freq=None)
                     for _ in range(20))
-    
+    print("\t" + lang + " TIME: " + time() - t0)
     print(lang + ": Estimated HEAP suite")
+    
+    t0 = time()
     
     heap_hapaxes = ImprovedHeapSuite(length_matched_sents, ns=rng, 
                                      freqs=(1,2,3,4,5,None))
     
-    
+    print("\t" + lang + " TIME: " + time() - t0)
     print(lang + ": Estimated HEAP HAPAXES", flush=True)
     
     
