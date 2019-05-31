@@ -77,7 +77,7 @@ if __name__ == "__main__":
     #%% BASIC ZIPF
     print("\n" + lang + ": BASIC ZIPF", flush=True)
     
-    rng = range(3)
+    rng = range(20)
     
     t0 = time()
 
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     t0 = time()
     
     rank_specs = []
-    rng = (np.linspace(0.02, 1.0, 3)*n).astype("int")
+    rng = (np.linspace(0.02, 1.0, 20)*n).astype("int")
     
     for m in rng:
         print(m)
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     
     
     freq_specs = []
-    rng = (np.linspace(0.02, 1.0, 3)*n).astype("int")
+    rng = (np.linspace(0.02, 1.0, 20)*n).astype("int")
     
     for m in rng:
         print(m)
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     
     t0 = time()
 
-    rng = (np.linspace(0.0, 1.0, 10)*n).astype("int")
+    rng = (np.linspace(0.0, 1.0, 100)*n).astype("int")
     heaps = tuple(ImprovedHeap(length_matched_sents, ns=rng, freq=None)
                     for _ in range(20))
     print("\t" + lang + " TIME: ", time() - t0)
