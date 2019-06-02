@@ -232,9 +232,9 @@ class ImprovedSpectrumSuite:
             xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
             
             
-            simple_scatterplot(uni_domain, uni_propens[1], log=log, color="orange", 
-                               lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=0.1, linewidth=0.)             
-            
+#            simple_scatterplot(uni_domain, uni_propens[1], log=log, color="orange", 
+#                               lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=0.1, linewidth=0.)             
+#            
             simple_scatterplot(uni_domain, means, log=log, color="blue",
                                lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=1.0, linewidth=0.) 
           
@@ -269,7 +269,7 @@ class ImprovedSpectrumSuite:
 
 
         if show:
-            plt.legend()
+#            plt.legend()
             plt.show()
                 
         

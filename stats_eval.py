@@ -98,8 +98,8 @@ if __name__ == "__main__":
     d = sentence_spec_suite.get_domains()[0]
     
     
-    sentence_spec_suite.plot(plot_type="scatter_band", 
-                             log=True, show=True)
+    sentence_spec_suite.plot(plot_type="scatter_all", plot_median=True, 
+                             log=True, show=True, alpha=[0.2]*len(sentence_spec_suite.spectra)) # alpha=[0.1]*(len(sentence_spec_suite.spectra)-2) + [1.0] + [0.1])
         
     plt.savefig(plot_dir + sentence_spec_suite.suite_name, dpi=200)
     

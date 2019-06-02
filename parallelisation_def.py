@@ -18,6 +18,8 @@ if not os.path.isdir("test"):
 def rand_subset_n_tokens(args):
     corpus, n_sents, i = args
     
+    print("FUNCTION; ARGS:", n_sents, i)
+    
     rand_inds = rand.choice(len(corpus), size=n_sents, replace=False)
     
 
@@ -46,6 +48,8 @@ if __name__ == "__main__":
     
     args = [(sentences, n, j) for n in ns for j in js]
     
-    with mp.Pool() as p:
+    
+    
+    with mp.Pool(4) as p:
         p.map(rand_subset_n_tokens, args)
     
