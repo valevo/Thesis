@@ -161,6 +161,33 @@ class ImprovedHeapSuite:
 
 
 
+#%%
+
+
+#means, mins, maxs = np.mean(fs, axis=0), np.min(fs, axis=0), np.max(fs, axis=0)
+#
+#
+##%%
+#    
+#
+#where = np.zeros(10, dtype="int")
+#where[np.arange(1, 10, step=1)] = 1
+#print(where)
+#    
+#plt.fill_between(np.arange(1, 11), mins, maxs, alpha=0.2, facecolor="blue",
+#                 linewidth=1.5)
+#plt.plot(np.arange(1, 11), means, '.', color="blue", alpha=1.0, linewidth=0.)
+#
+#
+#
+##%%
+#
+#class A:
+#    def __init__(self):
+#        self.a = 13
+#        
+        
+#%%
 
             
     

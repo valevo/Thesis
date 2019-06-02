@@ -3,12 +3,14 @@
 from stats.stat_functions import get_ranks, get_freqs, get_probs, plt,\
                              Counter, rand, np
 
-#import seaborn as sb
+import seaborn as sb
 
-#from stats.plotting import hexbin_plot, simple_scatterplot
+from stats.plotting import hexbin_plot, simple_scatterplot
 
 import os
 import pickle
+
+from scipy.stats import spearmanr
 
 class ImprovedSpectrum:
     def __init__(self, corpus, split_level="words", ranks=True, freqs=True):        
@@ -37,6 +39,7 @@ class ImprovedSpectrum:
             self.n_tokens = len(self.tokens_from(corpus, to_list=True))
             self.domain, self.propens = self.estimate(corpus)
         
+        self.n_zero_counts = sum(1 for c in self.propens if c == 0)
     
     def estimate(self, corpus):
         if self.split_lvl == "words":
@@ -102,46 +105,72 @@ class ImprovedSpectrum:
         return toks
     
     
-    def plot(self, plt_type="hex", log=True, lbl=None, show=False, **plt_args):
+    def plot(self, plot_type="hex", log=True, lbl=None, show=False, **plt_args):
         lbl_str = "$\log$ " if log else ""
         xlbl = lbl_str + ("rank" if self.ranks else "frequency")
         ylbl = lbl_str + ("frequency" if self.freqs else "normalised frequency")
-        if plt_type == "hex":
+        if plot_type == "hex":
             hexbin_plot(self.domain, self.propens,
                         xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
-        elif plt_type == "scatter":
+        elif plot_type == "scatter":
             simple_scatterplot(self.domain, self.propens, log=log,
                                lbl=lbl, xlbl=xlbl, ylbl=ylbl, **plt_args)
             
         if show:
             plt.legend()
             plt.show()
+    
+    
+    def correlate_with(self, other_spectrum, compute_correl=False, plot_correl=False,
+                       this_name=None, other_name=None, log=True, show=False, **plt_args):
+        min_max_r = min(map(max, [self.domain, other_spectrum.domain]))
+        self_propens, other_propens = self.propens[:min_max_r], other_spectrum.propens[:min_max_r]
+        
+        if plot_correl:
+            hexbin_plot(self_propens, other_propens, xlbl=this_name, 
+                        ylbl=this_name, log=log, **plt_args)
             
+        
+        if show:
+            plt.legend()
+            plt.show()
             
-    def cumulative_mass(self, rank_interval=None, freq_interval=None):
+        if compute_correl:
+            correl = spearmanr(self_propens, other_propens)
+            return tuple(map(lambda x: np.round(x, 2),\
+                             (correl.correlation, correl.pvalue)))
+            
+    
+            
+    def cumulative_mass(self, rank_interval=None, freq_interval=None,
+                        as_prob=False):
         if rank_interval and freq_interval:
             raise ValueError("BOTH RANK AND FREQ GIvEN FOR INTERVAL!")
             
         if not rank_interval and not freq_interval:
             return self.n_tokens if self.freqs else 1
+    
+        lower, upper = rank_interval if rank_interval else freq_interval
         
-        if rank_interval:
-            lower, upper = rank_interval
-            domain_arr = np.asarray(self.domain)
-            
-            relevant_inds = np.argwhere((lower <= domain_arr) & 
-                                        (domain_arr < upper)).reshape(-1)
-            return sum([self.propens[i] for i in relevant_inds])
+        x_arr = np.asarray(self.domain) if rank_interval else np.asarray(self.propens)
+        relevant_inds = np.argwhere((lower <= x_arr) & 
+                                        (x_arr < upper)).reshape(-1)
         
-        if freq_interval:
-            lower, upper = freq_interval
-            
-            propens_arr = np.asarray(self.propens)
-            
-            relevant_inds = np.argwhere((lower <= propens_arr) &
-                                        (propens_arr < upper)).reshape(-1)
-                        
-            return sum([self.propens[i] for i in relevant_inds])
+        norm_factor = self.n_tokens if as_prob else 1        
+        return sum([self.propens[i] for i in relevant_inds])/norm_factor
+        
+#        if rank_interval:
+#            lower, upper = rank_interval
+#            domain_arr = np.asarray(self.domain)
+#            relevant_inds = np.argwhere((lower <= domain_arr) & 
+#                                        (domain_arr < upper)).reshape(-1)
+#            return sum([self.propens[i] for i in relevant_inds])
+#        if freq_interval:
+#            lower, upper = freq_interval
+#            propens_arr = np.asarray(self.propens)
+#            relevant_inds = np.argwhere((lower <= propens_arr) &
+#                                        (propens_arr < upper)).reshape(-1)    
+#            return sum([self.propens[i] for i in relevant_inds])
         
         
     def __repr__(self):
@@ -152,22 +181,98 @@ class ImprovedSpectrum:
                         
         
 
+    
+    
+    
+
 
 class ImprovedSpectrumSuite:
     def __init__(self, spectra, names, suite_name=None):
         self.spectra = spectra
         self.names = names
         self.suite_name = "" if suite_name is None else str(suite_name)
+    
+    def get_domains(self, as_dict=False):
+        domains = [spec.domain for spec in self.spectra]
+        if as_dict:
+            return dict(zip(self.names, domains))
+        return domains
+    
+    def get_propens(self, as_dict=False):
+        propens = [spec.propens for spec in self.spectra]
+        if as_dict:
+            return dict(zip(self.names, propens))
+        return propens
+    
+    def unify_domains(self):
+        min_max_r = min(list(map(max, self.get_domains())))
         
+        uni_domain = np.arange(1, min_max_r+1)
+
+        uni_propens = np.asarray([ps[:min_max_r] for ps in self.get_propens()])
+
+        return uni_domain, uni_propens              
         
-    def plot(self, plot_type="scatter", log=True, show=False, **plt_args):
+    
+        
+    def plot(self, plot_type="scatter", log=True, show=False, 
+             unify_domains=True, **plt_args):
+        
         if plot_type == "scatter":
             for nm, spec in zip(self.names, self.spectra):
                 spec.plot(plot_type="scatter", log=log, lbl=nm, show=False, **plt_args)
             
-            if plt.show():
-                plt.legend()
-                plt.show()
+        elif plot_type == "scatter_band":
+            uni_domain, uni_propens = self.unify_domains()
+            
+            means, mins, maxs = np.median(uni_propens, axis=0),\
+                        np.min(uni_propens, axis=0),\
+                        np.max(uni_propens, axis=0)
+            
+            xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
+            
+            
+            simple_scatterplot(uni_domain, uni_propens[1], log=log, color="orange", 
+                               lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=0.1, linewidth=0.)             
+            
+            simple_scatterplot(uni_domain, means, log=log, color="blue",
+                               lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=1.0, linewidth=0.) 
+          
+            
+            plt.fill_between(uni_domain, mins, maxs, 
+                             alpha=0.2, facecolor="blue", linewidth=1.5,
+                             interpolate=False)
+        
+        elif plot_type == "scatter_all":
+            if "alpha" in plt_args:
+                alphas = plt_args["alpha"]
+                
+            
+                
+
+            uni_domain, uni_propens = self.unify_domains()
+            
+            means = np.median(uni_propens, axis=0)
+            
+            xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
+
+            
+            for nm, ps, a in zip(self.names, uni_propens, alphas):
+                simple_scatterplot(uni_domain, ps, log=log, ignore_zeros=True,
+                                   lbl=nm, xlbl=xlbl, ylbl=ylbl, alpha=a, linewidth=0.)
+            
+            
+            if "plot_median" in plt_args and plt_args["plot_median"]:
+                simple_scatterplot(uni_domain, means, log=log, ignore_zeros=True,
+                                   lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=1.0, linewidth=0.,
+                                   color="black") 
+
+
+        if show:
+            plt.legend()
+            plt.show()
+                
+        
             
     def __repr__(self):
         return "_".join(["ImprovedSpectrumSuite", self.suite_name])
@@ -194,20 +299,13 @@ class ImprovedSpectrumSuite:
         if suite_name:
             my_name = suite_name
         
-        names = os.listdir(dir_prefix + dir_name)
+        names = sorted(os.listdir(dir_prefix + dir_name))
         specs = []
         for f in names:
-            with open(dir_prefix + dir_name + "/" + f) as handle:
+            with open(dir_prefix + dir_name + "/" + f, "rb") as handle:
                 cur_spec = pickle.load(handle)
                 specs.append(cur_spec)
                 
         names = list(map(lambda s: s.split(".pkl")[0], names))
         
         return cls(specs, names, suite_name=my_name)
-                
-                
-            
-            
-            
-        
-        

@@ -6,7 +6,7 @@ import numpy as np
 import numpy.random as rand
 
 def remove_zeros(xs, ys=None):
-    if ys:
+    if not ys is None:
         return list(zip(*[(x, y) 
                 for x, y in zip(xs, ys) 
                 if x > 0 and y > 0]))
