@@ -23,7 +23,7 @@ cp -r $HOME/Thesis/stats_params.py "$TMPDIR"/Thesis
 cd "$TMPDIR"/Thesis
 
 echo "Thesis copied; stats copied; current dir: `pwd`"
-echo $(ls)
+echo $(ls *)
 
 
 #langs=(EO  FI  ID  KO  NO  TR  VI)
@@ -45,13 +45,16 @@ for i in "${!langs[@]}"; do
     echo 
 done
 
+
 wait
+
 
 for i in "${!langs[@]}"; do 
     echo "$i"
     echo "${langs[$i]}"
     echo "${ns[$i]}"
-    cp -r "$TMPDIR"/Thesis/Results/${langs[$i]}/stats/params $HOME/
+    mkdir $HOME/${langs[$i]}
+    cp -r "$TMPDIR"/Thesis/Results/${langs[$i]}/stats/params $HOME/${langs[$i]}/
 done
 
 
