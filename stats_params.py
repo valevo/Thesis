@@ -116,7 +116,7 @@ if __name__ == "__main__":
     preds_corrected = mandelbrot.predict(mandelbrot.optim_params)
     plt.plot(mandelbrot.exog, preds_corrected, "--", color="red")
     plt.savefig(param_dir + str(all_words_ranks_freqs) + "_plot", dpi=200)
-    
+    plt.close()
     
     mandelbrot.to_pickle(param_dir + str(all_words_ranks_freqs), remove_data=True)
 

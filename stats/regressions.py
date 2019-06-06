@@ -82,10 +82,10 @@ class Mandelbrot(GenericLikelihoodModel):
         fs = self.endog
         alpha, beta = params
         
-        if alpha > 10 or beta > 20:
-            return -np.inf
-        
-        if alpha < 1.0 or beta < 0.0:
+#        if alpha > 10 or beta > 20:
+#            return -np.inf
+#        
+        if alpha < 1.0:# or beta < 0.0:
             return -np.inf
         
         # no need to calculate P(r) when observed f(r) was zero
