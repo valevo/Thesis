@@ -6,14 +6,19 @@
 
 module load Python/3.6.1-intel-2016b 
 
-l="EO"
-n=38269026
+echo "Stat params estimation job $PBS_JOBID started at `date`"
+
+# cp -r $HOME/Thesis "$TMPDIR"
 
 
-echo "Stat job $PBS_JOBID with ($l, $n) started at `date`"
+mkdir "$TMPDIR"/Thesis
+
+cp -r $HOME/Thesis/stats "$TMPDIR"/Thesis
+cp -r $HOME/Thesis/Results "$TMPDIR"/Thesis
+cp -r $HOME/Thesis/utils "$TMPDIR"/Thesis
+cp -r $HOME/Thesis/stats_params.py "$TMPDIR"/Thesis
 
 
-cp -r $HOME/Thesis "$TMPDIR"
 
 cd "$TMPDIR"/Thesis
 
