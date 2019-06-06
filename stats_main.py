@@ -221,7 +221,7 @@ if __name__ == "__main__":
     
     
     with open(top_dir+save_dir + "heap_ls.pkl", "wb") as handle:
-            pickle.dump(obj, handle)
+            pickle.dump(heaps, handle)
     
     
     print(lang + ": PICKLING DONE", flush=True)

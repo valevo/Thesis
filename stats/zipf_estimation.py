@@ -5,12 +5,14 @@ from stats.stat_functions import get_ranks, get_freqs, get_probs, plt,\
 
 import seaborn as sb
 
-from stats.plotting import hexbin_plot, simple_scatterplot
+from stats.plotting import hexbin_plot, simple_scatterplot, multiple_hexbin_plot
 
 import os
 import pickle
 
 from scipy.stats import spearmanr
+
+import numpy.random as rand
 
 class ImprovedSpectrum:
     def __init__(self, corpus, split_level="words", ranks=True, freqs=True):        
@@ -129,8 +131,6 @@ class ImprovedSpectrum:
         if plot_correl:
             hexbin_plot(self_propens, other_propens, xlbl=this_name, 
                         ylbl=this_name, log=log, **plt_args)
-            
-        
         if show:
             plt.legend()
             plt.show()
@@ -145,7 +145,7 @@ class ImprovedSpectrum:
     def cumulative_mass(self, rank_interval=None, freq_interval=None,
                         as_prob=False):
         if rank_interval and freq_interval:
-            raise ValueError("BOTH RANK AND FREQ GIvEN FOR INTERVAL!")
+            raise ValueError("BOTH RANK AND FREQ GIVEN FOR INTERVAL!")
             
         if not rank_interval and not freq_interval:
             return self.n_tokens if self.freqs else 1
@@ -232,12 +232,16 @@ class ImprovedSpectrumSuite:
             xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
             
             
-#            simple_scatterplot(uni_domain, uni_propens[1], log=log, color="orange", 
-#                               lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=0.1, linewidth=0.)             
-#            
-            simple_scatterplot(uni_domain, means, log=log, color="blue",
-                               lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=1.0, linewidth=0.) 
-          
+            
+            rand_ind = rand.randint(len(self.spectra), dtype="int")
+
+            print("SCATTER_BAND RAND_IND:", rand_ind)
+            simple_scatterplot(uni_domain, uni_propens[rand_ind], log=log, color="orange",
+                               lbl=None, xlbl=xlbl, ylbl=ylbl, linewidth=0.)             
+            
+#            simple_scatterplot(uni_domain, means, log=log, color="blue",
+#                               lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=0.5, linewidth=0.) 
+#          
             
             plt.fill_between(uni_domain, mins, maxs, 
                              alpha=0.2, facecolor="blue", linewidth=1.5,
@@ -248,7 +252,11 @@ class ImprovedSpectrumSuite:
                 alphas = plt_args["alpha"]
                 
             
-                
+            
+            rand_ind = rand.randint(len(self.spectra), dtype="int")
+
+            print("RAND IND", rand_ind)
+            print("NAMES", self.names)
 
             uni_domain, uni_propens = self.unify_domains()
             
@@ -257,15 +265,31 @@ class ImprovedSpectrumSuite:
             xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
 
             
-            for nm, ps, a in zip(self.names, uni_propens, alphas):
+            for i, (nm, ps, a) in enumerate(zip(self.names, uni_propens, alphas)):
+                if i == rand_ind:
+                    continue
                 simple_scatterplot(uni_domain, ps, log=log, ignore_zeros=True,
-                                   lbl=nm, xlbl=xlbl, ylbl=ylbl, alpha=a, linewidth=0.)
+                                   lbl=nm, xlbl=xlbl, ylbl=ylbl, alpha=0.5, linewidth=0.)
+                
+                
+            simple_scatterplot(uni_domain, uni_propens[rand_ind], log=log, ignore_zeros=True,
+                               lbl=str(self.names[rand_ind]) + " CHOSEN", 
+                               xlbl=xlbl, ylbl=ylbl, alpha=1.0, linewidth=0.,
+                               color="black")
             
             
             if "plot_median" in plt_args and plt_args["plot_median"]:
                 simple_scatterplot(uni_domain, means, log=log, ignore_zeros=True,
                                    lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=1.0, linewidth=0.,
                                    color="black") 
+                
+        elif plot_type == "hexbin":
+            xs = [spec.domain for spec in self.spectra]
+            ys = [spec.propens for spec in self.spectra]
+            
+            print("LEN xs:", len(xs), len(ys))
+            xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
+            multiple_hexbin_plot(xs, ys, xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
 
 
         if show:
@@ -295,17 +319,19 @@ class ImprovedSpectrumSuite:
     
     @classmethod
     def from_pickle(cls, dir_name, dir_prefix="./", suite_name=None):
-        my_name = dir_name
+        my_name = None
         if suite_name:
             my_name = suite_name
         
-        names = sorted(os.listdir(dir_prefix + dir_name))
+        files = os.listdir(dir_prefix + dir_name)
+        try:
+            names = sorted([int(f.replace(".pkl", "")) for f in files])
+        except ValueError:
+            names = sorted([f.replace(".pkl", "") for f in files])
+        
         specs = []
         for f in names:
-            with open(dir_prefix + dir_name + "/" + f, "rb") as handle:
+            with open(dir_prefix + dir_name + "/" + str(f) + ".pkl", "rb") as handle:
                 cur_spec = pickle.load(handle)
-                specs.append(cur_spec)
-                
-        names = list(map(lambda s: s.split(".pkl")[0], names))
-        
+                specs.append(cur_spec)        
         return cls(specs, names, suite_name=my_name)

@@ -1,16 +1,58 @@
 # -*- coding: utf-8 -*-
 
 import statsmodels.api as sm
-from statsmodels.base.model import GenericLikelihoodModel, LikelihoodModel
+from statsmodels.base.model import GenericLikelihoodModel,\
+        GenericLikelihoodModelResults
+
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
 
 from scipy.special import zeta
 from scipy.stats import binom
 
+import pickle
 
 import numpy as np
-lg = np.log2
+lg = np.log10
+
 
 class Mandelbrot(GenericLikelihoodModel):
+    def to_pickle(self, filename, remove_data=True):
+        if not filename.endswith(".pkl"):
+            filename += ".pkl"
+        
+        if not self.fit_result:
+            raise ValueError("No fit result registered yet; pickling pointless!")
+        
+        if remove_data:
+            self.fit_result.model = None
+            self.fit_result.exog = None
+            self.fit_result.endog = None
+            
+            
+        with open(filename, "wb") as handle:
+            pickle.dump(self.fit_result, handle)   
+            
+    @classmethod
+    def from_pickle(cls, filename, to_class=False, frequencies=None, 
+                    ranks=None, **kwargs):
+        with open(filename, "rb") as handle:
+            fit_res = pickle.load(handle)
+            
+        if not to_class:
+            return fit_res
+        
+        if (frequencies is None) or (ranks is None):
+            return ValueError("Mandelbrot class can only be instatiated with" 
+                              "frequencies and ranks given!")
+            
+        mandel = cls(frequencies, ranks, **kwargs)
+        fit_res.model = mandel
+        mandel.register_fit(fit_res)
+        return mandel
+            
+        
+    
     def __init__(self, frequencies, ranks, **kwargs):
         if not len(frequencies) == len(ranks):
             raise ValueError("NOT THE SAME NUMBER OF RANKS AND FREQS!")
@@ -21,6 +63,7 @@ class Mandelbrot(GenericLikelihoodModel):
         self.n_obs = np.sum(frequencies)
         
         super().__init__(endog=frequencies, exog=ranks, **kwargs)
+        self.fit_result = None
     
 
     def prob(self, params, ranks=None, log=False):
@@ -28,12 +71,10 @@ class Mandelbrot(GenericLikelihoodModel):
             ranks = self.exog
         
         alpha, beta = params
-        
         if log:
             return -alpha*lg(beta+ranks) - lg(zeta(alpha, q=beta+1.))
         else:
             return ((beta + ranks)**(-alpha))/zeta(alpha, q=beta+1.)
-        
     
     
     def loglike(self, params):
@@ -47,22 +88,59 @@ class Mandelbrot(GenericLikelihoodModel):
         if alpha < 1.0 or beta < 0.0:
             return -np.inf
         
-        log_probs = -alpha*lg(beta+rs) - lg(zeta(alpha, q=beta+1.))
         # no need to calculate P(r) when observed f(r) was zero
-        
+        log_probs = -alpha*lg(beta+rs) - lg(zeta(alpha, q=beta+1.))
         log_probs = log_probs.reshape(-1, )
-
-        
-        
         return np.sum(fs * log_probs)
     
     
-    def predict(self, params, ranks=None, freqs=True, n_obs=None):
-        if not ranks:
+    def register_fit(self, fit_result, overwrite=False):
+        if not self.fit_result is None and not overwrite:
+            raise ValueError("A fit result is already registered and overwrite=False!")
+            
+        self.fit_result = fit_result
+        self.optim_params = fit_result.params
+        self.pseudo_r_squared = self.pseudo_r_squared(self.optim_params)
+        self.SE, self.SE_relative = fit_result.bse, fit_result.bse/self.optim_params
+        self.BIC, self.BIC_relative = fit_result.bic,\
+                            (-2*self.null_loglike())/fit_result.bic
+    
+    def print_result(self):
+        if self.fit_result is None:
+            raise ValueError("Register a fitting result first!")
+
+        def format_x(x):
+            return float('{0:.3g}'.format(x))
+
+
+        print("="*50, flush=True)
+        print("  Optimal Parameters", 
+              tuple(map(format_x, self.optim_params)), flush=True)
+        
+        print("  Standard Error [relative]:", tuple(map(format_x, self.SE)), 
+              ", [", tuple(map(format_x, self.SE_relative)), "]", flush=True)
+        
+        print("  Pseudo R^2:", format_x(self.pseudo_r_squared), flush=True)
+        
+        print("  BIC [relative]:", format_x(self.BIC), 
+              ", [", format_x(self.BIC_relative), "]", flush=True)
+        print("="*50, flush=True)
+    
+    
+    def null_loglike(self, epsilon=1e-10):
+        return self.loglike((1.+epsilon, 0.0))
+    
+    def pseudo_r_squared(self, params):
+        return 1-self.loglike(params)/self.null_loglike()
+    
+    
+    def predict(self, params, ranks=None, freqs=True, n_obs=None, 
+                correct_for_finite_domain=True):
+        if ranks is None:
             ranks = self.exog
         ranks = np.asarray(ranks)
         
-        if not n_obs:
+        if n_obs is None:
             n_obs = self.n_obs
             
         alpha, beta = params
@@ -70,41 +148,76 @@ class Mandelbrot(GenericLikelihoodModel):
         
         if freqs:
             return n_obs*pred_probs
+        
+        if correct_for_finite_domain:
+            if not freqs:
+                raise NotImplementedError("Correction for "\
+                                          "finite domain not implemented with probabilities!")
+            return pred_probs*(n_obs/np.sum(pred_probs))
+        
         return pred_probs
-       
-        
-    def get_diagnostics(self, fit_result):
-        alpha_st_error, beta_std_error = fit_result.bse
-        bic = fit_result.bic
-        
-        confidence_interval = fit_result.conf_int()
-        
-        
-        
-    
     
     
 #%%
         
 class Heap(GenericLikelihoodModel):
+    def to_pickle(self, filename, remove_data=True):
+        if not filename.endswith(".pkl"):
+            filename += ".pkl"
+        if not self.fit_result:
+            raise ValueError("No fit result registered yet; pickling pointless!")
+        
+        if remove_data:
+            self.remove_data()
+
+        with open(filename, "wb") as handle:
+            pickle.dump(self.fit_result, handle)
+            
+    def remove_data(self):
+        self.fit_result.model = None
+        self.fit_result.exog = None
+        self.fit_result.endog = None        
+            
+    @classmethod
+    def from_pickle(cls, filename, to_class=False, ns_types=None, 
+                    ns_tokens=None, **kwargs):
+        with open(filename, "rb") as handle:
+            fit_res = pickle.load(handle)
+            
+        if not to_class:
+            return fit_res
+        
+        if (ns_types is None) or (ns_tokens is None):
+            return ValueError("Mandelbrot class can only be instatiated with" 
+                              "frequencies and ranks given!")
+            
+        heap = cls(ns_types, ns_tokens, **kwargs)
+        fit_res.model = heap
+        heap.register_fit(fit_res)
+        return heap
+    
     def __init__(self, ns_types, ns_tokens, **kwargs):
         if not len(ns_types) ==  len(ns_tokens):
             raise ValueError("N TYPES AND N TOKENS OF DIFFERENT LENGTH!")
             
+            
+        self.n_obs = len(ns_types)
         ns_types = np.asarray(ns_types)
         ns_tokens = np.asarray(ns_tokens)
         
-#        self.ttrs = ns_types/ns_tokens
+        self.ttrs = ns_types/ns_tokens
+        self.log_ttrs = lg(ns_types)/lg(ns_tokens)
         
-        
-#        self.log_ttrs = np.log(types)/np.log(tokens)
+        if ns_tokens[0] == 0:
+            self.ttrs[0] = 1
+            self.log_ttrs[0] = 1
         
         super().__init__(endog=ns_types, exog=ns_tokens, **kwargs)
+        self.fit_result = None
         
     def loglike(self, params):        
         K, beta = params
-        
-        print(K, beta)
+#        print(K, beta)
         
         if beta > 1. or K < 1:
             return -np.inf
@@ -112,46 +225,33 @@ class Heap(GenericLikelihoodModel):
         types, tokens = self.endog, self.exog
                 
         # V(n) = K*n**beta
-        projected_n_types = K*tokens**beta
-        
-#        print(projected_n_types)
-                
-#        ps = np.ones_like(types)
-#        ps = ps/2.
-        
+        projected_n_types = K*tokens**beta 
         p = .5
-        
-#        print(ps)
 
         # binom mode = floor((n+1)*p),
-        # so binom_n = floor(1/p*n)
-#        binom_ns = np.floor((1/ps)*projected_n_types)
-#        binom_ns = np.asarray([np.floor((1/p)*proj) 
-#                        for p, proj in zip(projected_n_types)])
-    
+        # so binom_n = floor(1/p*n)    
         binom_ns =  np.floor((1/p)*projected_n_types)
-        
-#        print(binom_ns)
-        
-#        logprobs = binom.logpmf(types, binom_ns, ps)
+
         logprobs = list(binom.logpmf(t, bn, p)[0] 
-                    for t, bn in zip(types, binom_ns))
-        
+                    for t, bn in zip(types, binom_ns))        
         logprobs_clipped = np.clip(logprobs, -10**6, 0)
-        
-#        print(logprobs)
-#        print(logprobs_clipped)
-#        print("----------------")
-        
         return sum(logprobs_clipped)
 
+    def null_loglike(self):
+        types, tokens = self.endog, self.exog
+        projected_n_types = np.median(self.ttrs)*tokens.reshape((-1, ))
+        p = .5
+        binom_ns =  np.floor((1/p)*projected_n_types)
+        logprobs = list(binom.logpmf(t, bn, p)
+                    for t, bn in zip(types, binom_ns))
+        logprobs_clipped = np.clip(logprobs, -10**6, 0)        
+        return sum(logprobs_clipped)
+    
     
     def fit(self, start_params=None, method="powell", **kwargs):
         if start_params is None:
-            start_params = (1, 0.8) # np.mean(np.log(self.endog)/np.log(self.exog)))
-            print("LOG TRR: ", start_params)
+            start_params = (10, 0.75) 
         return super().fit(start_params=start_params, method=method, **kwargs)
-    
     
     def predict(self, params, ns_tokens=None):
         if not ns_tokens:
@@ -159,128 +259,179 @@ class Heap(GenericLikelihoodModel):
         ns_tokens = np.asarray(ns_tokens)
         
         K, beta = params
-
         return K*ns_tokens**beta
-        
-#%% HEAP
-
-K, beta = 1, .5
-types, tokens = np.ceil(K*np.arange(5)**beta), np.arange(5)
-
-
-
-
-
-#%%
-
-types, tokens = heap.counts, heap.domain
-
-heap_model = Heap(types, tokens)        
-        
-#%%       
-#res_heap = heap_model.fit(start_params=np.asarray([1, 0.1]), 
-#                 method="powell", full_output=True)    
-
-res_heap = heap_model.fit(start_params=(2, 0.5), skip_hessian=True,)
-
-opt_K, opt_beta = res_heap.params
-
-#%%        
-plt.plot(heap.domain, heap.counts, '.')
-plt.plot(heap.domain, sheap_model.predict(res_heap.params), '--', color="red")
-#plt.savefig("stats/plots/heap_fitted", dpi=150)
-
-
-
-#%%
-
-ys = np.arange(0, 100)
-obs_y = 50
-
-p = 0.1
-for beta in np.arange(0.3, 0.7, 0.1):
-
-    proj_y = obs_y**beta
-    print(beta, proj_y)
-    binom_n = np.floor((1/p)*proj_y)
-    ps = binom.pmf(ys, binom_n, p)
-
-    plt.plot(ys, ps, '.', label=str(beta))
-#    plt.axvline(x=proj_y, ymin=0., ymax=1.)
     
-plt.legend()
-#plt.plot(xs, binom.pmf(xs, ), '.')
+    
+    
+    def register_fit(self, fit_result, overwrite=False):
+        if not self.fit_result is None and not overwrite:
+            raise ValueError("A fit result is already registered and overwrite=False!")
+            
+        self.fit_result = fit_result
+        self.optim_params = fit_result.params
+        self.pseudo_r_squared = self.pseudo_r_squared(self.optim_params)
+        self.SE, self.SE_relative = fit_result.bse, fit_result.bse/self.optim_params
+        self.BIC, self.BIC_relative = fit_result.bic,\
+                            (-2*self.null_loglike())/fit_result.bic
+    
+    def print_result(self):
+        if self.fit_result is None:
+            raise ValueError("Register a fitting result first!")
+
+        def format_x(x):
+            return float('{0:.3g}'.format(x))
 
 
-
-#%%
-
-spec = spec_sents
+        print("="*50, flush=True)
+        print("  Optimal Parameters", 
+              tuple(map(format_x, self.optim_params)), flush=True)
         
-i = 0
-j = 1000
-
-mandel = Mandelbrot(spec.propens, spec.domain)
-
-res = mandel.fit(start_params=np.asarray([1.0, 1.0]), 
-                 method="powell", full_output=True)
-
-opt_alpha, opt_beta = res.params
-
-#%%
-
-preds = mandel.predict((opt_alpha, opt_beta), freqs=True)
-
-preds_correct = preds*(mandel.n_obs/np.sum(preds))
-
-emp_probs = np.asarray(spec.propens)/(mandel.n_obs)#*zeta(opt_alpha, opt_beta+1.))
-emp_freqs = np.asarray(spec.propens)
-
-#plt.loglog(spec_arts.domain[i:j], preds, '--', color="green")
-
-plt.loglog(spec.domain, emp_freqs, '.')
-
-plt.loglog(spec.domain, preds_correct, '--', color="green")
-
+        print("  Standard Error [relative]:", tuple(map(format_x, self.SE)), 
+              ", [", tuple(map(format_x, self.SE_relative)), "]", flush=True)
+        
+        print("  Pseudo R^2:", format_x(self.pseudo_r_squared), flush=True)
+        
+        print("  BIC [relative]:", format_x(self.BIC), 
+              ", [", format_x(self.BIC_relative), "]", flush=True)
+        print("="*50, flush=True)
+    
+    
+    def pseudo_r_squared(self, params):
+        return 1-self.loglike(params)/self.null_loglike()
 
 #%%
+class LOWESS:
+    def to_pickle(self, filename, remove_data=True):
+        if not filename.endswith(".pkl"):
+            filename += ".pkl"        
+        if remove_data:
+            self.endog = None
+            self.exog = None
+        with open(filename, "wb") as handle:
+            pickle.dump(self, handle)
 
-from statsmodels.nonparametric.smoothers_lowess import lowess
-
-
-#lmodel = lowess(spec_words.propens, spec_words.domain, frac=0.5, it=1,
-#                delta=1000,is_sorted=True, return_sorted=False)
-
-
-x, y = np.asarray(spec_arts.domain[:1000]),\
-            np.asarray(spec_arts.propens[:1000])
-
-
-lmodel = lowess(np.log(y), np.log(x), frac=0.02, it=3,
-                delta=1,is_sorted=True, return_sorted=False)
-
-
+    @classmethod
+    def from_pickle(cls, filename, y=None, x=None, **kwargs):
+        with open(filename, "rb") as handle:
+            lowess = pickle.load(handle)
+            
+        if y is not None:
+            lowess.endog = y
+        if x is not None:
+            lowess.exog = x
+        return lowess
+    
+    def __init__(self, y, x, log=True, frac=10, it=3,
+                delta=1, is_sorted=True, return_sorted=False, **kwargs):
+        if frac > 1.:
+            frac = frac/len(x)
+            
+        self.log = log
+        self.it = it
+        self.delta = delta
+        self.return_sorted = return_sorted
+        
+        if log:
+            self.exog = lg(x)
+            self.endog = lg(y)
+        else:
+            self.exog = np.asarray(x)
+            self.endog = np.asarray(y)
+        
+        self.predictions = lowess(self.endog, self.exog, frac=frac, it=it,
+                                  delta=delta, is_sorted=is_sorted, 
+                                  return_sorted=return_sorted, **kwargs)
+        
+#%%
+#
+#types, tokens = heap.counts, heap.domain
+#
+#heap_model = Heap(types, tokens)        
+#        
+##%%
+#res_heap = heap_model.fit(start_params=(10.0, 0.5), full_output=True)
+#
+#heap_model.register_fit(res_heap)
+#
+#opt_K, opt_beta = res_heap.params
+#
+##%%        
+#plt.plot(heap.domain, heap.counts, '.')
+#plt.plot(heap.domain, heap_model.predict(res_heap.params), '--', color="red")
+#plt.plot(heap.domain, np.median(heap_model.ttrs)*np.asarray(heap.domain), '--', color="green")
+#
+##plt.savefig("stats/plots/heap_fitted", dpi=150)
+#
+#
+#
+#
+#
+#
 #%%
 
-
-#plt.loglog(spec_arts.domain[i:j], emp_freqs, '.')
-
-plt.loglog(spec_arts.domain[i:j], preds_correct, '--', color="green")
-
-plt.loglog(x, y, '.')
-plt.plot(x, np.exp(lmodel), color="red")
-
-
-
-plt.savefig("stats/plots/estimates", dpi=100)
-
-plt.close()
-
-
-
-
-#%%
-
-import mle
-
-
+#spec = spec_sents
+#        
+#i = 0
+#j = 1000
+#
+#mandel = Mandelbrot(spec.propens, spec.domain)
+#
+#res = mandel.fit(start_params=np.asarray([1.0, 1.0]), 
+#                 method="powell", full_output=True)
+#
+#mandel.register_fit(res)
+#
+##%%
+#
+#
+#
+#opt_alpha, opt_beta = res.params
+#
+##%%
+#
+#preds = mandel.predict((opt_alpha, opt_beta), freqs=True)
+#
+#preds_corrected = preds*(mandel.n_obs/np.sum(preds))
+#
+#emp_probs = np.asarray(spec.propens)/(mandel.n_obs)#*zeta(opt_alpha, opt_beta+1.))
+#emp_freqs = np.asarray(spec.propens)
+#
+##plt.loglog(spec_arts.domain[i:j], preds, '--', color="green")
+#
+#plt.loglog(spec.domain, emp_freqs, '.')
+#
+#plt.loglog(spec.domain, preds_corrected, '--', color="green")
+#
+#preds_baseline = mandel.predict((1.00000001, 0.00000001), freqs=True)
+#baseline_corrected = preds_baseline*(mandel.n_obs/np.sum(preds_baseline))
+#
+#plt.loglog(spec.domain, baseline_corrected, '--', color="red")
+#
+#plt.loglog(spec.domain, (1/np.asarray(spec.domain))*baseline_corrected[0], '--', color="orange")
+#
+#
+#
+##%%
+#
+#
+#
+##x, y = np.asarray(spec.domain),\
+##            np.asarray(spec.propens)
+#
+#
+##lmodel = lowess(np.log(y), np.log(x), frac=50/len(x), it=10,
+##                delta=1,is_sorted=True, return_sorted=False)
+#
+#lmodel = LOWESS(spec.propens, spec.domain, log=True)
+#
+#lowess_preds = lmodel.predictions
+#
+#
+##%%
+#
+#plt.loglog(spec.domain, preds_corrected, '--', color="green")
+#
+#plt.loglog(spec.domain, spec.propens, '.')
+#plt.plot(spec.domain, 10**(lowess_preds), color="red")
+##
+##

@@ -98,9 +98,10 @@ if __name__ == "__main__":
     d = sentence_spec_suite.get_domains()[0]
     
     
-    sentence_spec_suite.plot(plot_type="scatter_all", plot_median=True, 
-                             log=True, show=True, alpha=[0.2]*len(sentence_spec_suite.spectra)) # alpha=[0.1]*(len(sentence_spec_suite.spectra)-2) + [1.0] + [0.1])
+    sentence_spec_suite.plot(plot_type="scatter_band", 
+                             log=True, show=False)#, alpha=[0.2]*len(sentence_spec_suite.spectra)) # alpha=[0.1]*(len(sentence_spec_suite.spectra)-2) + [1.0] + [0.1])
         
+    plt.title("SPECTRUM SUITE")
     plt.savefig(plot_dir + sentence_spec_suite.suite_name, dpi=200)
     
     plt.close()
@@ -117,17 +118,22 @@ if __name__ == "__main__":
     split_levels_suite = ImprovedSpectrumSuite(
             [all_articles_ranks_freqs,
             sentence_spec_suite.spectra[0],
-            all_words_ranks_freqs], names=["articles", "sentences", "words"])
+            all_words_ranks_freqs], names=["articles", "sentences", "words"],
+             suite_name="split_levels")
     
     
     
     
-    split_levels_suite.plot(plot_type="scatter_all", 
-                            show=True, alpha=[1.0, 0.8, 0.6])
+    split_levels_suite.plot(plot_type="hexbin", 
+                            show=False)#, alpha=[1.0, 0.8, 0.6])
     
+    
+    plt.savefig(plot_dir + split_levels_suite.suite_name, dpi=200)
 
     plt.close()
     
+    
+    print("\n" + lang + "CORRELATIONS")
 
     
     articles_words_correl = all_articles_ranks_freqs.correlate_with(all_words_ranks_freqs, 

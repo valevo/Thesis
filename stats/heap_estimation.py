@@ -128,8 +128,8 @@ class ImprovedHeapSuite:
         if not lbls:
             lbls = list(map(str, self.freqs))
         plot_f = plt.plot
-        for cur_heap, l in zip(self.heaps, lbls):
-            plot_f(self.domain, cur_heap.counts, '.', label=l)
+        for f, cur_heap in self.heaps.items():
+            plot_f(self.domain, cur_heap.counts, '.', label=str(f))
         
         plt.legend()
         if show:
