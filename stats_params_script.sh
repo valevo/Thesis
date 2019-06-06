@@ -29,8 +29,8 @@ echo $(ls *)
 #langs=(EO  FI  ID  KO  NO  TR  VI)
 #ns=(38269026 50000062 50000034 50000028 50003875 50000008 50000016)
 
-langs=(FI)
-ns=(50000062)
+langs=(TR)
+ns=(50000008)
 
 for i in "${!langs[@]}"; do 
     echo "$i"
