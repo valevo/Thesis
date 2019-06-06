@@ -113,7 +113,7 @@ if __name__ == "__main__":
     
     
     all_words_ranks_freqs.plot(plot_type="hex")
-    preds_corrected = mandelbrot.predict(mandelbrot.params)
+    preds_corrected = mandelbrot.predict(mandelbrot.optim_params)
     plt.plot(mandelbrot.exog, preds_corrected, "--", color="red")
     plt.savefig(param_dir + str(all_words_ranks_freqs) + "_plot", dpi=200)
     
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     lowess.to_pickle(param_dir + str(all_articles_ranks_freqs) + "_lowess", remove_data=True)
 
     all_articles_ranks_freqs.plot(plot_type="hex")
-    preds_corrected = mandelbrot.predict(mandelbrot.params)
+    preds_corrected = mandelbrot.predict(mandelbrot.optim_params)
     plt.plot(mandelbrot.exog, preds_corrected, "--", color="red")
     plt.savefig(param_dir + str(all_articles_ranks_freqs) + "_plot", dpi=200)
     
