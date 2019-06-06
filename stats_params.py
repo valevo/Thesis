@@ -58,10 +58,13 @@ if __name__ == "__main__":
     lang, n = parse_args()
     stats_names = get_stats_names(n)
     
+    print(lang, os.listdir("."))
+    print(lang, os.listdir("Results/" + lang + "/" + "stats/"))
+    
     stat_dir = "Results/" + lang + "/" + "stats/"
     param_dir = stat_dir + "params/"
     if not os.path.isdir(param_dir):
-        print(lang + "MADE DIR ", param_dir, flush=True)
+        print(lang, "MADE DIR ", param_dir, flush=True)
         os.makedirs(param_dir)
     
     #%% ZIPF: SENTENCE RANK FREQ
