@@ -91,7 +91,7 @@ class Mandelbrot(GenericLikelihoodModel):
         # no need to calculate P(r) when observed f(r) was zero
         log_probs = -alpha*lg(beta+rs) - lg(zeta(alpha, q=beta+1.))
         log_probs = log_probs.reshape(-1, )
-        return np.sum(fs * log_probs) - beta**2
+        return np.sum(fs * log_probs) - beta**6
     
     
     def register_fit(self, fit_result, overwrite=False):
