@@ -37,7 +37,7 @@ for i in "${!langs[@]}"; do
     echo "${langs[$i]}"
     echo "${ns[$i]}"
     
-    cp -r $HOME/ThesisEstimationResults/${langs[$i]}/stats "$TMPDIR"/Thesis/Results/$l/
+    cp -r $HOME/ThesisEstimationResults/${langs[$i]}/stats "$TMPDIR"/Thesis/Results/${langs[$i]}/
     echo "Copied stats folder"
     
     python3.6 stats_params.py --lang=${langs[$i]} --n=${ns[$i]} &
