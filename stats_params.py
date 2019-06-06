@@ -106,11 +106,21 @@ if __name__ == "__main__":
     print(lang, "WORDS", str(all_words_ranks_freqs), flush=True)
     mandelbrot.print_result()
     print(flush=True)
-    mandelbrot.to_pickle(param_dir + str(all_words_ranks_freqs), remove_data=True)
     
     lowess = LOWESS(all_words_ranks_freqs.propens, 
                     all_words_ranks_freqs.domain, log=True)
     lowess.to_pickle(param_dir + str(all_words_ranks_freqs) + "_lowess", remove_data=True)
+    
+    
+    all_words_ranks_freqs.plot(plot_type="hex")
+    preds_corrected = mandelbrot.predict(mandelbrot.params)
+    plt.plot(mandelbrot.exog, preds_corrected, "--", color="red")
+    plt.savefig(param_dir + str(all_words_ranks_freqs) + "_plot", dpi=200)
+    
+    
+    mandelbrot.to_pickle(param_dir + str(all_words_ranks_freqs), remove_data=True)
+
+    
     
     
     
@@ -123,11 +133,17 @@ if __name__ == "__main__":
     print(lang, "ARTICLES", str(all_articles_ranks_freqs), flush=True)
     mandelbrot.print_result()
     print()
-    mandelbrot.to_pickle(param_dir + str(all_articles_ranks_freqs), remove_data=True)
     
     lowess = LOWESS(all_articles_ranks_freqs.propens, 
                     all_articles_ranks_freqs.domain, log=True)
     lowess.to_pickle(param_dir + str(all_articles_ranks_freqs) + "_lowess", remove_data=True)
+
+    all_articles_ranks_freqs.plot(plot_type="hex")
+    preds_corrected = mandelbrot.predict(mandelbrot.params)
+    plt.plot(mandelbrot.exog, preds_corrected, "--", color="red")
+    plt.savefig(param_dir + str(all_articles_ranks_freqs) + "_plot", dpi=200)
+    
+    mandelbrot.to_pickle(param_dir + str(all_articles_ranks_freqs), remove_data=True)
 
     
     #%% REPRESENTATIONS
