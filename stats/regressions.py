@@ -369,43 +369,43 @@ class LOWESS:
 #
 #%%
 
-spec = spec_sents
-        
-i = 0
-j = 1000
-
-mandel = Mandelbrot(spec.propens, spec.domain)
-
-res = mandel.fit(start_params=np.asarray([1.0, 1.0]), 
-                 method="powell", full_output=True)
-
-mandel.register_fit(res)
-
-#%%
-
-
-
-opt_alpha, opt_beta = res.params
-
-#%%
-
-preds = mandel.predict((opt_alpha, opt_beta), freqs=True)
-
-preds_corrected = preds*(mandel.n_obs/np.sum(preds))
-
-emp_probs = np.asarray(spec.propens)/(mandel.n_obs)#*zeta(opt_alpha, opt_beta+1.))
-emp_freqs = np.asarray(spec.propens)
-
-#plt.loglog(spec_arts.domain[i:j], preds, '--', color="green")
-
-plt.loglog(spec.domain, emp_freqs, '.')
-
-plt.loglog(spec.domain, preds_corrected, '--', color="green")
-
-plt.loglog(spec.domain, mandel.predict((opt_alpha, 90.0)), '--', color="red")
-
-preds_baseline = mandel.predict((1.00000001, 0.00000001), freqs=True)
-baseline_corrected = preds_baseline*(mandel.n_obs/np.sum(preds_baseline))
+#spec = spec_sents
+#        
+#i = 0
+#j = 1000
+#
+#mandel = Mandelbrot(spec.propens, spec.domain)
+#
+#res = mandel.fit(start_params=np.asarray([1.0, 1.0]), 
+#                 method="powell", full_output=True)
+#
+#mandel.register_fit(res)
+#
+##%%
+#
+#
+#
+#opt_alpha, opt_beta = res.params
+#
+##%%
+#
+#preds = mandel.predict((opt_alpha, opt_beta), freqs=True)
+#
+#preds_corrected = preds*(mandel.n_obs/np.sum(preds))
+#
+#emp_probs = np.asarray(spec.propens)/(mandel.n_obs)#*zeta(opt_alpha, opt_beta+1.))
+#emp_freqs = np.asarray(spec.propens)
+#
+##plt.loglog(spec_arts.domain[i:j], preds, '--', color="green")
+#
+#plt.loglog(spec.domain, emp_freqs, '.')
+#
+#plt.loglog(spec.domain, preds_corrected, '--', color="green")
+#
+#plt.loglog(spec.domain, mandel.predict((opt_alpha, 90.0)), '--', color="red")
+#
+#preds_baseline = mandel.predict((1.00000001, 0.00000001), freqs=True)
+#baseline_corrected = preds_baseline*(mandel.n_obs/np.sum(preds_baseline))
 
 #plt.loglog(spec.domain, baseline_corrected, '--', color="red")
 

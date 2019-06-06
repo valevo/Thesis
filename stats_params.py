@@ -101,7 +101,7 @@ if __name__ == "__main__":
     
     mandelbrot = Mandelbrot(all_words_ranks_freqs.propens, all_words_ranks_freqs.domain)
     mandelbrot_fit = mandelbrot.fit(start_params=np.asarray([1.0, 1.0]), 
-                                    method="basinhopping", full_output=True)
+                                    method="powell", full_output=True)
     mandelbrot.register_fit(mandelbrot_fit)    
     print(lang, "WORDS", str(all_words_ranks_freqs), flush=True)
     mandelbrot.print_result()
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     
     mandelbrot = Mandelbrot(all_articles_ranks_freqs.propens, all_articles_ranks_freqs.domain)
     mandelbrot_fit = mandelbrot.fit(start_params=np.asarray([1.0, 1.0]), 
-                                    method="basinhopping", full_output=True)
+                                    method="powell", full_output=True)
     mandelbrot.register_fit(mandelbrot_fit)    
     print(lang, "ARTICLES", str(all_articles_ranks_freqs), flush=True)
     mandelbrot.print_result()
