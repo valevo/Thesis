@@ -112,6 +112,10 @@ if __name__ == "__main__":
     lowess.to_pickle(param_dir + str(all_words_ranks_freqs) + "_lowess", remove_data=True)
     
     
+    orig_val = plt.rcParams['agg.path.chunksize']
+    
+    plt.rcParams['agg.path.chunksize'] = 10000
+    
     all_words_ranks_freqs.plot(plot_type="scatter")
     
     preds_corrected = mandelbrot.predict(mandelbrot.optim_params)
@@ -124,7 +128,9 @@ if __name__ == "__main__":
     plt.close()
     
     mandelbrot.to_pickle(param_dir + str(all_words_ranks_freqs), remove_data=True)
-
+    plt.rcParams['agg.path.chunksize'] = orig_val
+    
+    
     
     from stats.plotting import remove_zeros
     
