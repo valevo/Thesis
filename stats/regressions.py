@@ -114,6 +114,7 @@ class Mandelbrot(GenericLikelihoodModel):
 
 
         print("="*50, flush=True)
+        print("MANDELBROT")
         print("  Optimal Parameters", 
               tuple(map(format_x, self.optim_params)), flush=True)
         
@@ -283,6 +284,7 @@ class Heap(GenericLikelihoodModel):
 
 
         print("="*50, flush=True)
+        print("HEAP")
         print("  Optimal Parameters", 
               tuple(map(format_x, self.optim_params)), flush=True)
         
