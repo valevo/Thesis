@@ -115,7 +115,11 @@ if __name__ == "__main__":
     all_words_ranks_freqs.plot(plot_type="scatter")
     
     preds_corrected = mandelbrot.predict(mandelbrot.optim_params)
-    plt.plot(mandelbrot.exog, preds_corrected, "--", color="red")
+    plt.plot(mandelbrot.exog, preds_corrected, "--", color="red", 
+             label=str(mandelbrot.optim_params))
+    plt.plot(mandelbrot.exog, 10**lowess.predictions, color="grey",
+             label="LWS")
+    plt.legend()
     plt.savefig(param_dir + str(all_words_ranks_freqs) + "_plot", dpi=200)
     plt.close()
     
