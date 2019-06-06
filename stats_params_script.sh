@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH -t 10:00:00
-#SBATCH --mem=70G
+#SBATCH -t 01:00:00
+#SBATCH --mem=10G
 
 
 module load Python/3.6.1-intel-2016b 
