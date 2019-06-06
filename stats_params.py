@@ -61,7 +61,7 @@ if __name__ == "__main__":
     stat_dir = "Results/" + lang + "/" + "stats/"
     param_dir = stat_dir + "params/"
     if not os.path.isdir(param_dir):
-        print("MADE DIR ", param_dir, flush=True)
+        print(lang + "MADE DIR ", param_dir, flush=True)
         os.makedirs(param_dir)
     
     #%% ZIPF: SENTENCE RANK FREQ
@@ -71,7 +71,7 @@ if __name__ == "__main__":
                                    dir_prefix=stat_dir)    
     
     suite_dir = param_dir + repr(sentence_spec_suite) + "/"
-    print(repr(sentence_spec_suite), suite_dir, flush=True)
+    print(lang, repr(sentence_spec_suite), flush=True)
     os.makedirs(suite_dir)
     
     for name, spec in zip(sentence_spec_suite.names, sentence_spec_suite.spectra):
@@ -80,7 +80,7 @@ if __name__ == "__main__":
                  method="powell", full_output=True)
         mandelbrot.register_fit(mandelbrot_fit)
         
-        print(name, flush=True)
+        print(lang, name, flush=True)
         mandelbrot.print_result()
         print(flush=True)
 
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     mandelbrot_fit = mandelbrot.fit(start_params=np.asarray([1.0, 1.0]), 
                                     method="powell", full_output=True)
     mandelbrot.register_fit(mandelbrot_fit)    
-    print("WORDS", str(all_words_ranks_freqs), flush=True)
+    print(lang, "WORDS", str(all_words_ranks_freqs), flush=True)
     mandelbrot.print_result()
     print(flush=True)
     mandelbrot.to_pickle(param_dir + str(all_words_ranks_freqs), remove_data=True)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     mandelbrot_fit = mandelbrot.fit(start_params=np.asarray([1.0, 1.0]), 
                                     method="powell", full_output=True)
     mandelbrot.register_fit(mandelbrot_fit)    
-    print("ARTICLES", str(all_articles_ranks_freqs), flush=True)
+    print(lang, "ARTICLES", str(all_articles_ranks_freqs), flush=True)
     mandelbrot.print_result()
     print()
     mandelbrot.to_pickle(param_dir + str(all_articles_ranks_freqs), remove_data=True)
@@ -147,7 +147,7 @@ if __name__ == "__main__":
                                       suite_name=stats_names[7].replace("ImprovedSpectrumSuite_", ""))
     
     suite_dir = param_dir + repr(convergence_rank_suite) + "/"
-    print(repr(convergence_rank_suite), suite_dir, flush=True)
+    print(lang, repr(convergence_rank_suite), flush=True)
     os.makedirs(suite_dir)
     
     for name, spec in zip(convergence_rank_suite.names, convergence_rank_suite.spectra):
@@ -155,7 +155,7 @@ if __name__ == "__main__":
         mandelbrot_fit = mandelbrot.fit(start_params=np.asarray([1.0, 1.0]), 
                  method="powell", full_output=True)
         mandelbrot.register_fit(mandelbrot_fit)        
-        print("\t", name, flush=True)
+        print("\t", lang, name, flush=True)
         mandelbrot.print_result()
         print()
         mandelbrot.to_pickle(suite_dir + str(name), remove_data=True)
@@ -170,11 +170,11 @@ if __name__ == "__main__":
                                       suite_name=stats_names[8].replace("ImprovedSpectrumSuite_", ""))
     
     suite_dir = param_dir + repr(convergence_freq_suite) + "/"
-    print(repr(convergence_freq_suite), suite_dir, flush=True)
+    print(lang, repr(convergence_freq_suite), suite_dir, flush=True)
     os.makedirs(suite_dir)
     
     for name, spec in zip(convergence_freq_suite.names, convergence_freq_suite.spectra):
-        print("\t", name, flush=True)
+        print("\t",lang, name, flush=True)
         lowess = LOWESS(spec.propens, 
                     spec.domain, log=True)
         lowess.to_pickle(suite_dir + str(name) + "_lowess", remove_data=True)
@@ -209,11 +209,11 @@ if __name__ == "__main__":
     hapaxes = get_stat(10, dir_prefix=stat_dir)
     
     suite_dir = param_dir + repr(hapaxes) + "/"
-    print(repr(hapaxes), suite_dir)
+    print(lang, repr(hapaxes))
     os.makedirs(suite_dir)    
 
     for f, heap in hapaxes.heaps.items():
-        print(f, flush=True)
+        print(lang, f, flush=True)
         if f == "all" or f < 3:    
             heap_model = Heap(heap.counts, heap.domain)
             res_heap = heap_model.fit(start_params=(10.0, 0.7), full_output=True)    
