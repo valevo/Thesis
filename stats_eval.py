@@ -3,6 +3,7 @@
 from stats.CorpusStats import CorpusStats
 from stats.zipf_estimation import ImprovedSpectrum, ImprovedSpectrumSuite
 from stats.heap_estimation import ImprovedHeap, ImprovedHeapSuite
+from stats.regressions import Mandelbrot, Heap, LOWESS
 from stats.plotting import hexbin_plot, simple_scatterplot
 
 
@@ -58,9 +59,18 @@ def get_stat(stats_names_ind, open_f=open_pickle, dir_prefix="./"):
     return stat
 
 
+#def get_model(stats_names_ind, open_f=open_pickle, dir_prefix="./params/", file_suffix=""):
+#    filename = stats_names[stats_names_ind] + file_suffix 
+#    if open_f is open_pickle:
+#        filename += ".pkl"
+#    model = open_f
+#    
+
+
 if __name__ == "__main__":
     lang = "ALS"
     stat_dir = "Results/" + lang + "/" + "stats/"
+    param_dir = stat_dir + "params/"
     plot_dir = stat_dir + "plots/"
     
     if not os.path.isdir(plot_dir):
@@ -95,12 +105,24 @@ if __name__ == "__main__":
     sentence_spec_suite = get_stat(1, open_f=ImprovedSpectrumSuite.from_pickle, 
                                    dir_prefix=stat_dir)    
     
-    d = sentence_spec_suite.get_domains()[0]
-    
+    suite_dir = param_dir + repr(sentence_spec_suite) + "/"
     
     sentence_spec_suite.plot(plot_type="scatter_band", 
                              log=True, show=False)#, alpha=[0.2]*len(sentence_spec_suite.spectra)) # alpha=[0.1]*(len(sentence_spec_suite.spectra)-2) + [1.0] + [0.1])
         
+    
+    for name, spec in zip(sentence_spec_suite.names, sentence_spec_suite.spectra):
+        mandelbrot = Mandelbrot.from_pickle(suite_dir+str(name), to_class=True, 
+                                            frequencies=spec.propens, ranks=spec.domain)
+        
+        
+        
+        
+        
+
+
+
+
     plt.title("SPECTRUM SUITE")
     plt.savefig(plot_dir + sentence_spec_suite.suite_name, dpi=200)
     

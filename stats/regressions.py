@@ -36,6 +36,9 @@ class Mandelbrot(GenericLikelihoodModel):
     @classmethod
     def from_pickle(cls, filename, to_class=False, frequencies=None, 
                     ranks=None, **kwargs):
+        
+        if not filename.endswith(".pkl"):
+            filename += ".pkl"        
         with open(filename, "rb") as handle:
             fit_res = pickle.load(handle)
             
@@ -91,7 +94,7 @@ class Mandelbrot(GenericLikelihoodModel):
         # no need to calculate P(r) when observed f(r) was zero
         log_probs = -alpha*lg(beta+rs) - lg(zeta(alpha, q=beta+1.))
         log_probs = log_probs.reshape(-1, )
-        return np.sum(fs * log_probs) - beta**6
+        return np.sum(fs * log_probs) - beta**5
     
     
     def register_fit(self, fit_result, overwrite=False):
@@ -105,7 +108,7 @@ class Mandelbrot(GenericLikelihoodModel):
         self.BIC, self.BIC_relative = fit_result.bic,\
                             (-2*self.null_loglike())/fit_result.bic
     
-    def print_result(self):
+    def print_result(self, string=False):
         if self.fit_result is None:
             raise ValueError("Register a fitting result first!")
 
@@ -113,19 +116,23 @@ class Mandelbrot(GenericLikelihoodModel):
             return float('{0:.3g}'.format(x))
 
 
-        print("="*50, flush=True)
-        print("MANDELBROT")
-        print("  Optimal Parameters", 
-              tuple(map(format_x, self.optim_params)), flush=True)
+        s = "="*50
+        s += "\n" + "HEAP"
+        s += "\n" + "  Optimal Parameters " + str(tuple(map(format_x, self.optim_params)))
         
-        print("  Standard Error [relative]:", tuple(map(format_x, self.SE)), 
-              ", [", tuple(map(format_x, self.SE_relative)), "]", flush=True)
+        s += "\n" + "  Standard Error [relative]: " + str(tuple(map(format_x, self.SE))) +\
+              ", [" + str(tuple(map(format_x, self.SE_relative))) + "]"
         
-        print("  Pseudo R^2:", format_x(self.pseudo_r_squared), flush=True)
+        s += "\n" + "  Pseudo R^2: " + str(format_x(self.pseudo_r_squared))
         
-        print("  BIC [relative]:", format_x(self.BIC), 
-              ", [", format_x(self.BIC_relative), "]", flush=True)
-        print("="*50, flush=True)
+        s += "\n" + "  BIC [relative]: " + str(format_x(self.BIC)) +\
+              ", [" + str(format_x(self.BIC_relative)) + "]"
+        s += "\n" + "="*50
+        
+        if string:
+            return s
+        
+        print(s)
     
     
     def null_loglike(self, epsilon=1e-10):
@@ -182,6 +189,8 @@ class Heap(GenericLikelihoodModel):
     @classmethod
     def from_pickle(cls, filename, to_class=False, ns_types=None, 
                     ns_tokens=None, **kwargs):
+        if not filename.endswith(".pkl"):
+            filename += ".pkl"        
         with open(filename, "rb") as handle:
             fit_res = pickle.load(handle)
             
@@ -275,7 +284,7 @@ class Heap(GenericLikelihoodModel):
         self.BIC, self.BIC_relative = fit_result.bic,\
                             (-2*self.null_loglike())/fit_result.bic
     
-    def print_result(self):
+    def print_result(self, string=False):
         if self.fit_result is None:
             raise ValueError("Register a fitting result first!")
 
@@ -283,19 +292,27 @@ class Heap(GenericLikelihoodModel):
             return float('{0:.3g}'.format(x))
 
 
-        print("="*50, flush=True)
-        print("HEAP")
-        print("  Optimal Parameters", 
-              tuple(map(format_x, self.optim_params)), flush=True)
+        s = "="*50
+        s += "\n" + "HEAP"
+        s += "\n" + "  Optimal Parameters " + str(tuple(map(format_x, self.optim_params)))
         
-        print("  Standard Error [relative]:", tuple(map(format_x, self.SE)), 
-              ", [", tuple(map(format_x, self.SE_relative)), "]", flush=True)
+        s += "\n" + "  Standard Error [relative]: " + str(tuple(map(format_x, self.SE))) +\
+              ", [" + str(tuple(map(format_x, self.SE_relative))) + "]"
         
-        print("  Pseudo R^2:", format_x(self.pseudo_r_squared), flush=True)
+        s += "\n" + "  Pseudo R^2: " + str(format_x(self.pseudo_r_squared))
         
-        print("  BIC [relative]:", format_x(self.BIC), 
-              ", [", format_x(self.BIC_relative), "]", flush=True)
-        print("="*50, flush=True)
+        s += "\n" + "  BIC [relative]: " + str(format_x(self.BIC)) +\
+              ", [" + str(format_x(self.BIC_relative)) + "]"
+        s += "\n" + "="*50
+        
+        if string:
+            return s
+        
+        print(s)
+
+
+
+
     
     
     def pseudo_r_squared(self, params):
@@ -314,6 +331,8 @@ class LOWESS:
 
     @classmethod
     def from_pickle(cls, filename, y=None, x=None, **kwargs):
+        if not filename.endswith(".pkl"):
+            filename += ".pkl"        
         with open(filename, "rb") as handle:
             lowess = pickle.load(handle)
             
