@@ -59,23 +59,27 @@ def get_stat(stats_names_ind, open_f=open_pickle, dir_prefix="./"):
     return stat
 
 
-#def get_model(stats_names_ind, open_f=open_pickle, dir_prefix="./params/", file_suffix=""):
-#    filename = stats_names[stats_names_ind] + file_suffix 
-#    if open_f is open_pickle:
-#        filename += ".pkl"
-#    model = open_f
-#    
+def file_writer(filename):
+    handle = open(filename, "w")
+    def write(s):
+        handle.write(s)
+        handle.write("\n")
+        
+    return write
+    
 
 
 if __name__ == "__main__":
     lang = "ALS"
     stat_dir = "Results/" + lang + "/" + "stats/"
     param_dir = stat_dir + "params/"
-    plot_dir = stat_dir + "plots/"
+    summary_dir = stat_dir + "summary/"
     
-    if not os.path.isdir(plot_dir):
-        print("MADE DIR ", plot_dir)
-        os.makedirs(plot_dir)
+    write_stat = file_writer(summary_dir)
+    
+    if not os.path.isdir(summary_dir):
+        print("MADE DIR ", summary_dir)
+        os.makedirs(summary_dir)
     
 #    stats = list(iter_stats(stat_dir))
 #    
@@ -114,17 +118,20 @@ if __name__ == "__main__":
     for name, spec in zip(sentence_spec_suite.names, sentence_spec_suite.spectra):
         mandelbrot = Mandelbrot.from_pickle(suite_dir+str(name), to_class=True, 
                                             frequencies=spec.propens, ranks=spec.domain)
+        preds_corrected = mandelbrot.predict(mandelbrot.optim_params)
+        plt.plot(mandelbrot.exog, preds_corrected, "--", color="red", 
+                 label=str(mandelbrot.optim_params))
         
         
-        
-        
+        plt.plot(mandelbrot.exog, 10**lowess.predictions, color="grey",
+                 label="LWS")        
         
 
 
 
 
     plt.title("SPECTRUM SUITE")
-    plt.savefig(plot_dir + sentence_spec_suite.suite_name, dpi=200)
+    plt.savefig(summary_dir + sentence_spec_suite.suite_name, dpi=200)
     
     plt.close()
 
@@ -150,7 +157,7 @@ if __name__ == "__main__":
                             show=False)#, alpha=[1.0, 0.8, 0.6])
     
     
-    plt.savefig(plot_dir + split_levels_suite.suite_name, dpi=200)
+    plt.savefig(summary_dir + split_levels_suite.suite_name, dpi=200)
 
     plt.close()
     

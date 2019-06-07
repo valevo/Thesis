@@ -231,8 +231,6 @@ class ImprovedSpectrumSuite:
             
             xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
             
-            
-            
             rand_ind = rand.randint(len(self.spectra), dtype="int")
 
             print("SCATTER_BAND RAND_IND:", rand_ind)
