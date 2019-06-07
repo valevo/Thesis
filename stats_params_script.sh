@@ -26,11 +26,11 @@ echo "Thesis copied; stats copied; current dir: `pwd`"
 echo $(ls *)
 
 
-#langs=(EO  FI  ID  KO  NO  TR  VI)
-#ns=(38269026 50000062 50000034 50000028 50003875 50000008 50000016)
+langs=(EO  FI  ID  KO  NO  TR  VI)
+ns=(38269026 50000062 50000034 50000028 50003875 50000008 50000016)
 
-langs=(TR)
-ns=(50000008)
+#langs=(TR)
+#ns=(50000008)
 
 for i in "${!langs[@]}"; do 
     echo "$i"

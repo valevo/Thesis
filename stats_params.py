@@ -6,6 +6,7 @@ from stats.zipf_estimation import ImprovedSpectrum, ImprovedSpectrumSuite,\
                             plt, rand, Counter     
 from stats.heap_estimation import ImprovedHeap, ImprovedHeapSuite
 from stats.regressions import Mandelbrot, Heap, LOWESS
+from stats.plotting import remove_zeros
 
 
 from time import time
@@ -106,42 +107,15 @@ if __name__ == "__main__":
     print(lang, "WORDS", str(all_words_ranks_freqs), flush=True)
     mandelbrot.print_result()
     print(flush=True)
-    
+    mandelbrot.to_pickle(param_dir + str(all_words_ranks_freqs), remove_data=True)
+
     lowess = LOWESS(all_words_ranks_freqs.propens, 
                     all_words_ranks_freqs.domain, log=True)
     lowess.to_pickle(param_dir + str(all_words_ranks_freqs) + "_lowess", remove_data=True)
     
     
-    orig_val = plt.rcParams['agg.path.chunksize']
-    
-    plt.rcParams['agg.path.chunksize'] = 10000
-    
-    all_words_ranks_freqs.plot(plot_type="scatter")
-    
-    preds_corrected = mandelbrot.predict(mandelbrot.optim_params)
-    plt.plot(mandelbrot.exog, preds_corrected, "--", color="red", 
-             label=str(mandelbrot.optim_params))
-    plt.plot(mandelbrot.exog, 10**lowess.predictions, color="grey",
-             label="LWS")
-    plt.legend()
-    plt.savefig(param_dir + str(all_words_ranks_freqs) + "_plot", dpi=200)
-    plt.close()
-    
-    mandelbrot.to_pickle(param_dir + str(all_words_ranks_freqs), remove_data=True)
-    plt.rcParams['agg.path.chunksize'] = orig_val
-    
-    
-    
-    from stats.plotting import remove_zeros
-    
-    
+
     all_articles_ranks_freqs = get_stat(3, dir_prefix=stat_dir) 
-    
-    no_zero_domain, no_zero_propens = remove_zeros(all_articles_ranks_freqs.domain,
-                                                   all_articles_ranks_freqs.propens)
-    
-    all_articles_ranks_freqs.domain = no_zero_domain
-    all_articles_ranks_freqs.propens = no_zero_propens
     
     mandelbrot = Mandelbrot(all_articles_ranks_freqs.propens, all_articles_ranks_freqs.domain)
     mandelbrot_fit = mandelbrot.fit(start_params=np.asarray([1.0, 1.0]), 
@@ -150,17 +124,11 @@ if __name__ == "__main__":
     print(lang, "ARTICLES", str(all_articles_ranks_freqs), flush=True)
     mandelbrot.print_result()
     print()
+    mandelbrot.to_pickle(param_dir + str(all_articles_ranks_freqs), remove_data=True)
     
     lowess = LOWESS(all_articles_ranks_freqs.propens, 
                     all_articles_ranks_freqs.domain, log=True)
     lowess.to_pickle(param_dir + str(all_articles_ranks_freqs) + "_lowess", remove_data=True)
-
-    all_articles_ranks_freqs.plot(plot_type="hex")
-    preds_corrected = mandelbrot.predict(mandelbrot.optim_params)
-    plt.plot(mandelbrot.exog, preds_corrected, "--", color="red")
-    plt.savefig(param_dir + str(all_articles_ranks_freqs) + "_plot", dpi=200)
-    
-    mandelbrot.to_pickle(param_dir + str(all_articles_ranks_freqs), remove_data=True)
 
     
     #%% REPRESENTATIONS
@@ -189,7 +157,7 @@ if __name__ == "__main__":
     for name, spec in zip(convergence_rank_suite.names, convergence_rank_suite.spectra):
         mandelbrot = Mandelbrot(spec.propens, spec.domain)
         mandelbrot_fit = mandelbrot.fit(start_params=np.asarray([1.0, 1.0]), 
-                 method="powell", full_output=True)
+                                        method="powell", full_output=True)
         mandelbrot.register_fit(mandelbrot_fit)        
         print("\t", lang, name, flush=True)
         mandelbrot.print_result()
