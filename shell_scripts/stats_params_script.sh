@@ -13,10 +13,12 @@ echo "Stat params estimation job $PBS_JOBID started at `date`"
 
 mkdir "$TMPDIR"/Thesis
 
+cp -r $HOME/Thesis/data "$TMPDIR"/Thesis
 cp -r $HOME/Thesis/stats "$TMPDIR"/Thesis
 cp -r $HOME/Thesis/Results "$TMPDIR"/Thesis
 cp -r $HOME/Thesis/utils "$TMPDIR"/Thesis
 cp -r $HOME/Thesis/stats_params.py "$TMPDIR"/Thesis
+cp -r $HOME/Thesis/stats_main.py "$TMPDIR"/Thesis
 
 
 

@@ -10,24 +10,35 @@ echo "Stat job $PBS_JOBID started at `date`"
 
 cp -r $HOME/Thesis "$TMPDIR"
 
+
+
+mkdir "$TMPDIR"/Thesis
+
+cp -r $HOME/Thesis/stats "$TMPDIR"/Thesis
+cp -r $HOME/Thesis/Results "$TMPDIR"/Thesis
+cp -r $HOME/Thesis/utils "$TMPDIR"/Thesis
+cp -r $HOME/Thesis/stats_params.py "$TMPDIR"/Thesis
+
+
 cd "$TMPDIR"/Thesis
 
 echo "Thesis copied; current dir: `pwd`"
 
 
 #ID KO NO TR VI
-for l in EO FI; do
-    echo "RUNNING STAT SCRIPT WITH $l"
-    python3.6 stats_main.py --lang=$l &
+langs=(EO FI)
+for i in "${!langs[@]}"; do
+    echo "RUNNING STAT SCRIPT WITH ${langs[$i]}"
+    python3.6 stats_main.py --lang=${langs[$i]} &
 done
 
 echo "WAITING..."
 
 wait
 
-for l in EO FI; do
-    echo "COPYING $l"
-    cp -rf "$TMPDIR"/Thesis/Results/$l $HOME
+for i in "${!langs[@]}"; do
+    echo "COPYING ${langs[$i]}"
+    cp -rf "$TMPDIR"/Thesis/Results/${langs[$i]} $HOME
 done
 
 
