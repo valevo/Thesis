@@ -117,7 +117,7 @@ class Mandelbrot(GenericLikelihoodModel):
 
 
         s = "="*50
-        s += "\n" + "HEAP"
+        s += "\n" + "MANDELBROT"
         s += "\n" + "  Optimal Parameters " + str(tuple(map(format_x, self.optim_params)))
         
         s += "\n" + "  Standard Error [relative]: " + str(tuple(map(format_x, self.SE))) +\

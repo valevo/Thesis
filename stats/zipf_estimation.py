@@ -14,6 +14,30 @@ from scipy.stats import spearmanr
 
 import numpy.random as rand
 
+lg = np.log10
+
+
+
+def residuals(preds, true_propens, log=True, rm_0=True):
+#    if rm_0:
+#        preds, true_propens = [remove_zeros_numpy(p1, p2) 
+#                                for p1, p2 in zip(preds, true_propens)]
+        
+    if log:
+        log_propens = lg(true_propens)
+        ratios = lg(preds) - log_propens
+    else:
+        ratios = np.asarray(preds)/np.asarray(true_propens)
+    ratios[np.isinf(ratios)] = lg(1e-10) if log else 1e-10
+    return ratios
+
+
+
+
+
+
+
+
 class ImprovedSpectrum:
     def __init__(self, corpus, split_level="words", ranks=True, freqs=True):        
         self.split_lvl = split_level
@@ -191,6 +215,7 @@ class ImprovedSpectrumSuite:
         self.spectra = spectra
         self.names = names
         self.suite_name = "" if suite_name is None else str(suite_name)
+        self.n_specs = len(spectra)
     
     def get_domains(self, as_dict=False):
         domains = [spec.domain for spec in self.spectra]
@@ -215,85 +240,76 @@ class ImprovedSpectrumSuite:
         
     
         
-    def plot(self, plot_type="scatter", log=True, show=False, 
-             unify_domains=True, **plt_args):
+    def plot(self, plot_type, log=True, show=False, 
+             unify_domains=True, preds=None, ind=None, **plt_args):
         
-        if plot_type == "scatter":
-            for nm, spec in zip(self.names, self.spectra):
-                spec.plot(plot_type="scatter", log=log, lbl=nm, show=False, **plt_args)
-            
-        elif plot_type == "scatter_band":
-            uni_domain, uni_propens = self.unify_domains()
-            
-            means, mins, maxs = np.median(uni_propens, axis=0),\
-                        np.min(uni_propens, axis=0),\
-                        np.max(uni_propens, axis=0)
-            
-            xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
-            
-            rand_ind = rand.randint(len(self.spectra), dtype="int")
-
-            print("SCATTER_BAND RAND_IND:", rand_ind)
-            simple_scatterplot(uni_domain, uni_propens[rand_ind], log=log, color="orange",
-                               lbl=None, xlbl=xlbl, ylbl=ylbl, linewidth=0.)             
-            
-#            simple_scatterplot(uni_domain, means, log=log, color="blue",
-#                               lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=0.5, linewidth=0.) 
-#          
-            
-            plt.fill_between(uni_domain, mins, maxs, 
-                             alpha=0.2, facecolor="blue", linewidth=1.5,
-                             interpolate=False)
+        if plot_type.startswith("residual") and preds is None:
+            raise ValueError("Need preds to calculate residuals!")
         
-        elif plot_type == "scatter_all":
-            if "alpha" in plt_args:
-                alphas = plt_args["alpha"]
-                
+        
+        uni_domain, uni_propens = self.unify_domains()
+        
+        means, mins, maxs = np.median(uni_propens, axis=0),\
+                            np.min(uni_propens, axis=0),\
+                            np.max(uni_propens, axis=0)
+        
+        lbl_str = "$\log$ " if log else ""
+        xlbl = lbl_str + "rank" # ("rank" if self.ranks else "frequency")
+        ylbl = lbl_str + "frequency" #("frequency" if self.freqs else "normalised frequency")
+        
+        if ind is None:
+            ind = rand.randint(len(self.spectra), dtype="int")
+        
+        
+        if plot_type == "hexbin":
+            params = dict(edgecolors="white", linewidths=0.3, cmap="Reds_r")
+            params.update(plt_args)
             
+            hexbin_plot(uni_domain, uni_propens[ind],
+                        xlbl=xlbl, ylbl=ylbl, log=log, **params)
+        
+        elif plot_type == "hexbin_all":
+            params = dict(edgecolors=None, cmap="Blues_r")
+            params.update(plt_args)
             
-            rand_ind = rand.randint(len(self.spectra), dtype="int")
+            concat_domain = np.tile(uni_domain, self.n_specs)
+            concat_propens = np.concatenate(uni_propens)
+            
+            hexbin_plot(concat_domain, concat_propens, xlbl=xlbl, ylbl=ylbl, 
+                        log=log, **params)
 
-            print("RAND IND", rand_ind)
-            print("NAMES", self.names)
+        elif plot_type == "residual":
+            params = dict(edgecolors="white", cmap="Reds_r", linewidths=0.3)
+            params.update(plt_args)
+            
+            resids = residuals(preds, uni_propens[ind], log=False)
+            hexbin_plot(uni_domain, resids, xlbl=xlbl, ylbl=ylbl, log=log,
+                        **params)
 
-            uni_domain, uni_propens = self.unify_domains()
-            
-            means = np.median(uni_propens, axis=0)
-            
-            xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
 
+        elif plot_type == "residual_all":
+            params = dict(edgecolors=None, cmap="Blues_r")
+            params.update(plt_args)
             
-            for i, (nm, ps, a) in enumerate(zip(self.names, uni_propens, alphas)):
-                if i == rand_ind:
-                    continue
-                simple_scatterplot(uni_domain, ps, log=log, ignore_zeros=True,
-                                   lbl=nm, xlbl=xlbl, ylbl=ylbl, alpha=0.5, linewidth=0.)
-                
-                
-            simple_scatterplot(uni_domain, uni_propens[rand_ind], log=log, ignore_zeros=True,
-                               lbl=str(self.names[rand_ind]) + " CHOSEN", 
-                               xlbl=xlbl, ylbl=ylbl, alpha=1.0, linewidth=0.,
-                               color="black")
-            
-            
-            if "plot_median" in plt_args and plt_args["plot_median"]:
-                simple_scatterplot(uni_domain, means, log=log, ignore_zeros=True,
-                                   lbl=None, xlbl=xlbl, ylbl=ylbl, alpha=1.0, linewidth=0.,
-                                   color="black") 
-                
-        elif plot_type == "hexbin":
-            xs = [spec.domain for spec in self.spectra]
-            ys = [spec.propens for spec in self.spectra]
-            
-            print("LEN xs:", len(xs), len(ys))
-            xlbl, ylbl = "$\log$ rank", "$\log$ frequency"
-            multiple_hexbin_plot(xs, ys, xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
+            resids = residuals(preds, uni_propens, log=False)
+            concat_domain = np.tile(uni_domain, self.n_specs)
+            concat_resids = np.concatenate(resids)
+            print(concat_domain.shape, concat_resids.shape)
+            hexbin_plot(concat_domain, concat_resids, 
+                        xlbl=xlbl, ylbl=ylbl, log=log, **params)
 
+        elif plot_type == "means":
+            hexbin_plot(uni_domain, means,
+                        xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
+        
+        
+        plt.legend()
 
         if show:
-#            plt.legend()
             plt.show()
                 
+            
+        return ind
         
             
     def __repr__(self):
@@ -333,3 +349,75 @@ class ImprovedSpectrumSuite:
                 cur_spec = pickle.load(handle)
                 specs.append(cur_spec)        
         return cls(specs, names, suite_name=my_name)
+    
+    
+##%%
+#        
+#    
+#plt.fill_between([1,2,3], [10**1,10**2,10**3], [10**2,10**3,10**4], facecolor="grey", 
+#                 alpha=0.5)
+#plt.loglog([1,2,3], [10**1, 10**2, 10**3], "--", color="brown", linewidth=2.0)
+#plt.show()
+
+
+
+
+#    def plot(self, plot_type="scatter", log=True, show=False, 
+#             unify_domains=True, other_propens=None, ind=None, **plt_args):
+#        
+#        uni_domain, uni_propens = self.unify_domains()
+#        
+#        if other_propens is not None:
+#            uni_propens = other_propens
+#        
+#        means, mins, maxs = np.median(uni_propens, axis=0),\
+#                            np.min(uni_propens, axis=0),\
+#                            np.max(uni_propens, axis=0)
+#        
+#        lbl_str = "$\log$ " if log else ""
+#        xlbl = lbl_str + "rank" # ("rank" if self.ranks else "frequency")
+#        ylbl = lbl_str + "frequency" #("frequency" if self.freqs else "normalised frequency")
+#        
+#        if ind is None:
+#            ind = rand.randint(len(self.spectra), dtype="int")
+#        
+#        if plot_type == "scatter":
+#            simple_scatterplot(uni_domain, uni_propens[ind], log=log,
+#                               xlbl=xlbl, ylbl=ylbl, linewidth=0., **plt_args)  
+#
+#        elif plot_type == "scatter_all":
+#            for i, (nm, ps) in enumerate(zip(self.names, uni_propens)):
+#                simple_scatterplot(uni_domain, ps, log=log, ignore_zeros=True,
+#                                   lbl=str(nm), xlbl=xlbl, ylbl=ylbl, alpha=0.5, 
+#                                   linewidth=0., **plt_args)
+#            
+#        elif plot_type == "band":
+#            params = dict(alpha=0.5, facecolor="grey")
+#            params.update(plt_args)            
+#            plt.fill_between(uni_domain, mins, maxs, linewidth=1.5,
+#                             interpolate=False, **params)
+#        
+#        elif plot_type == "hexbin":
+#            hexbin_plot(uni_domain, uni_propens[ind],
+#                        xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
+#        
+#        elif plot_type == "hexbin_all":
+#            xs = [spec.domain for spec in self.spectra]
+#            ys = [spec.propens for spec in self.spectra]
+#            
+#            multiple_hexbin_plot(xs, ys, labels=map(str, self.names), 
+#                                 xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
+#
+#        elif plot_type == "means":
+#            hexbin_plot(uni_domain, means,
+#                        xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
+#        
+#        
+#        plt.legend()
+#
+#        if show:
+#            plt.show()
+#                
+#            
+#        return ind
+        
