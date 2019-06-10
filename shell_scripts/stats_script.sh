@@ -8,10 +8,6 @@ module load Python/3.6.1-intel-2016b
 
 echo "Stat job $PBS_JOBID started at `date`"
 
-cp -r $HOME/Thesis "$TMPDIR"
-
-
-
 mkdir "$TMPDIR"/Thesis
 
 cp -r $HOME/Thesis/stats "$TMPDIR"/Thesis
