@@ -8,6 +8,31 @@ import matplotlib.pyplot as plt
 
 from time import time
 
+from stats.plotting import hexbin_plot, simple_scatterplot, multiple_hexbin_plot
+
+import os
+import pickle
+
+from scipy.stats import spearmanr
+
+lg = np.log10
+
+def residuals(preds, true_propens, log=True, rm_0=True):
+#    if rm_0:
+#        preds, true_propens = [remove_zeros_numpy(p1, p2) 
+#                                for p1, p2 in zip(preds, true_propens)]
+        
+    if log:
+        log_propens = lg(true_propens)
+        ratios = lg(preds) - log_propens
+    else:
+        ratios = np.asarray(preds)/np.asarray(true_propens)
+    ratios[np.isinf(ratios)] = lg(1e-10) if log else 1e-10
+    return ratios
+
+
+
+
 class ImprovedHeap:    
     def __init__(self, corpus, ns, freq=None):
         self.domain = ns
@@ -56,51 +81,7 @@ class ImprovedHeap:
         for i in self.domain:
             counts = Counter(self.n_tokens_from_randomised(corpus, i))
             yield sum(map(lambda v: int(v == freq), counts.values()))
-    
-    
-    
-    
-#    def estimate(self, corpus, freq):
-#        for i in self.domain:
-#            corp_ls = list(corpus)
-#            rand_inds = rand.choice(len(corp_ls), size=len(corp_ls), replace=False)
-#            rand_corp_iter = (corp_ls[i] for i in rand_inds)
-#            
-#            cur_corp = self.tokens_from(rand_corp_iter, i)
-#            counts = Counter(w for s in cur_corp for w in s)
-#            
-#            yield sum(map(lambda v: int(v == freq), counts.values()))
-#            #yield len(list(filter(lambda v: v == freq, counts.values())))
-#            
-#
-#            
-#    def estimate_all(self, corpus):
-#        t0 = time()
-#        for i in self.domain:
-#            print(i)
-#            corp_ls = list(corpus)
-#            t1 = time() - t0
-#            print("list(corpus)", t1)    
-#            rand_inds = rand.choice(len(corp_ls), size=len(corp_ls), replace=False)
-#            t2 = time() - t0 - t1
-#            print("rand.choice", t2)
-#            
-#            rand_corp_iter = (corp_ls[i] for i in rand_inds)
-#  
-#            t2_1 = time() - t0 - t2
-#    
-#            print("corp_iter", t2_1)
-#          
-#            cur_corp = self.tokens_from(rand_corp_iter, i)
-#            
-#            t3 = time() - t0 - t2_1
-#            print("self.tokens_from", t3)
-#            
-#            cur_corp = list(cur_corp)
-#            cur_V = len(set(w for s in cur_corp for w in s))
-#            print("len(set)", time() - t0 - t3)
-#            
-#            yield cur_V
+
             
     def plot(self, log=True, lbl=None, show=False):
         plot_f = plt.loglog if log else plt.plot
@@ -109,6 +90,46 @@ class ImprovedHeap:
         if show:
             plt.show()
             
+            
+    def plot(self, plot_type, show=False, preds=None, **plt_args):
+        xlbl, ylbl = "number of tokens", "number of types"
+        if plot_type == "hexbin":
+            params = dict(edgecolors="white", linewidths=0.1, cmap="Blues_r")
+            params.update(plt_args)
+            
+            hexbin_plot(self.domain, self.counts, xlbl=xlbl, ylbl=ylbl,
+                        log=False, ignore_zeros=False, **params)
+            
+        elif plot_type == "residual":
+            params = dict(edgecolors="white", cmap="Blues_r", linewidths=0.1)
+            params.update(plt_args)
+            
+            resids = residuals(preds, self.counts, log=False)
+            hexbin_plot(self.domain, resids, xlbl=xlbl, ylbl="error", log=False,
+                        ignore_zeros=False, **params)
+            
+            
+    @staticmethod
+    def pooled_plot(heaps, plot_type, show=False, preds=None, **plt_args):
+        xlbl, ylbl = "number of tokens", "number of types"
+        concat_domains = np.concatenate([h.domain for h in heaps])
+        concat_counts = np.concatenate([h.counts for h in heaps])
+        if plot_type == "hexbin":
+            params = dict(edgecolors="white", linewidths=0.1, cmap="Blues_r")
+            params.update(plt_args)
+            
+            hexbin_plot(concat_domains, concat_counts, xlbl=xlbl, ylbl=ylbl,
+                        log=False, ignore_zeros=False, **params)
+            
+        elif plot_type == "residual":
+            params = dict(edgecolors="white", linewidths=0.1, cmap="Blues_r")
+            params.update(plt_args)
+            
+            concat_preds = np.concatenate(preds)
+            resids = residuals(concat_preds, concat_counts, log=False)
+            hexbin_plot(concat_domains, resids, xlbl=xlbl, ylbl="error", log=False,
+                        ignore_zeros=False, **params)
+
     
     def __repr__(self):
         return "_".join(["ImprovedHeap", str(len(self.domain)),
@@ -122,7 +143,16 @@ class ImprovedHeapSuite:
         self.freqs = freqs
         
         self.heaps = {(f if f else "all"):ImprovedHeap(corpus, ns, f) for f in freqs}
+    
+    def plot(self, plot_type, show=False, preds=None, ind=None, **plt_args):
         
+        if not ind:
+            ind = rand.randin
+        
+        
+        if plot_type == "hexbin":
+            pass
+    
         
     def plot(self, lbls=None, show=False):
         if not lbls:
@@ -139,55 +169,3 @@ class ImprovedHeapSuite:
         return "_".join(["ImprovedHeapSuite", str(len(self.domain)),
                          "-".join(map(str, self.freqs))])
 
-
-    #%%
-            
-#hs = [ImprovedHeap(sentences[:50000], ns=list(range(0,50000, 500)), freq=None) 
-#            for _ in range(30)]
-#
-#max_cs = [max([h.counts[i] for h in hs]) for i in range(len(hs[0].domain))]    
-#
-#min_cs = [min([h.counts[i] for h in hs]) for i in range(len(hs[0].domain))]
-
-#mean_cs = [np.mean([h.counts[i] for h in hs]) for i in range(len(hs[0].domain))]        
-##%%            
-#
-#plt.fill_between(hs[0].domain, min_cs, max_cs, alpha=0.2, facecolor="blue",
-#                 linewidth=1.5)
-#plt.plot(hs[0].domain, mean_cs, '.', color="blue", alpha=1.0, linewidth=0.)
-#
-#plt.savefig("stats/plots/heap_band", dpi=200)
-
-
-
-
-#%%
-
-
-#means, mins, maxs = np.mean(fs, axis=0), np.min(fs, axis=0), np.max(fs, axis=0)
-#
-#
-##%%
-#    
-#
-#where = np.zeros(10, dtype="int")
-#where[np.arange(1, 10, step=1)] = 1
-#print(where)
-#    
-#plt.fill_between(np.arange(1, 11), mins, maxs, alpha=0.2, facecolor="blue",
-#                 linewidth=1.5)
-#plt.plot(np.arange(1, 11), means, '.', color="blue", alpha=1.0, linewidth=0.)
-#
-#
-#
-##%%
-#
-#class A:
-#    def __init__(self):
-#        self.a = 13
-#        
-        
-#%%
-
-            
-    

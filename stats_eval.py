@@ -39,6 +39,7 @@ stats_names = ["CorpusStats",
                f"ImprovedSpectrum_{n}_sentences_freqs_freq",
                f"ImprovedSpectrum_{n}_sentences_freqs_prob",
                "ImprovedSpectrumSuite_convergence_ranks",
+               "ImprovedSpectrumSuite_convergence_ranks_freq",
                "ImprovedSpectrumSuite_convergence_freq",
                "heap_ls",
                "ImprovedHeapSuite_100_1-2-3-4-5-None"
@@ -116,14 +117,33 @@ if __name__ == "__main__":
                                           frequencies=spec.propens, ranks=spec.domain)
                     for name, spec in zip(sentence_spec_suite.names, 
                                           sentence_spec_suite.spectra)]
-    mandel_preds = np.asarray([m.predict(m.optim_params, ranks=uni_domain, 
+    mandel_preds_uni = np.asarray([m.predict(m.optim_params, ranks=uni_domain, 
                                          n_obs=n)
                                 for m, n in zip(mandelbrots, np.sum(uni_propens, axis=-1))])
+    mandel_preds = [m.predict(m.optim_params).reshape(-1) for m in mandelbrots]
     
     
+    i = 0
+    sentence_spec_suite.plot("hexbin", ind=i, cmap="Blues_r")
+    plt.plot(sentence_spec_suite.spectra[i].domain, mandel_preds[i], '--',
+             color="red")
+    
+    plt.savefig(summary_dir + "basic_zipf",
+                dpi=300)    
+    plt.close()
     
     
-    
+    sentence_spec_suite.plot("residual", ind=i, preds=mandel_preds[i], 
+                             unify_domains=False, cmap="Blues_r", gridsize=100)
+#    plt.plot(sentence_spec_suite.spectra[i].domain, 
+#             np.ones_like(sentence_spec_suite.spectra[i].domain), '--', color="red", linewidth=0.5)
+    x_lims = min(uni_domain)/2, max(uni_domain)*2
+    y_lims = 10**(-2.5), 100
+    plt.xlim(x_lims)
+    plt.ylim(y_lims)
+    plt.savefig(summary_dir + "basic_resid",
+                dpi=300)    
+    plt.close()
     
     
     #%% VARIANCE IN ESTIMATES
@@ -131,40 +151,29 @@ if __name__ == "__main__":
     write_summary("\nVARIANCE IN ESTIMATES")
     
     # VAR IN ESTIMATES
-    sentence_spec_suite.plot(plot_type="hexbin_all", cbar=False)
-    sentence_spec_suite.plot(plot_type="hexbin")
-    plt.savefig(summary_dir + str(sentence_spec_suite) + "_hexbins" + "_hexbin",
-                dpi=200)    
+    sentence_spec_suite.plot(plot_type="hexbin_all", cbar=True)
+    sentence_spec_suite.plot(plot_type="hexbin", cbar=False)
+    plt.savefig(summary_dir + str(sentence_spec_suite) + "hexbins" + "_hexbin",
+                dpi=300)    
     plt.close()
 
     
-    #VAR IN RESIDUALS
-#    resids = residuals(mandel_preds, uni_propens, log=False, rm_0=True)
-#    concat_resids = np.concatenate(resids[:-1])
-#    hexbin_plot(concat_domain, concat_resids, xlbl=None, ylbl=None, log=True, alpha=0.8, 
-#                edgecolors=None, cmap="Blues_r", gridsize=75, cbar=0,
-#                xscale="log", yscale="log")
-#    hexbin_plot(uni_domain, resids[-1], xlbl=None, ylbl=None, log=True, alpha=0.8, 
-#                edgecolors="white", cmap="Reds_r", gridsize=75, cbar=True, 
-#                linewidths=0.3, xscale="log", yscale="log")
-    
-    sentence_spec_suite.plot(plot_type="residual_all", preds=mandel_preds, 
-                             cbar=False, gridsize=100)
+    #VAR IN RESIDUALS    
+    sentence_spec_suite.plot(plot_type="residual_all", preds=mandel_preds_uni, 
+                             cbar=True, gridsize=100)
     randi = rand.randint(0, sentence_spec_suite.n_specs)
-    sentence_spec_suite.plot(plot_type="residual", preds=mandel_preds[randi],
-                             ind=randi, gridsize=100)
+#    sentence_spec_suite.plot(plot_type="residual", preds=mandel_preds_uni[randi],
+#                             ind=randi, gridsize=100)
     
-    plt.plot(uni_domain, np.ones_like(uni_domain), "--", color="red",
-             linewidth=0.5)    
+#    plt.plot(uni_domain, np.ones_like(uni_domain), "--", color="red",
+#             linewidth=0.5)    
 
     x_lims = min(uni_domain)/2, max(uni_domain)*2
     y_lims = 10**(-2.5), 100
     plt.xlim(x_lims)
     plt.ylim(y_lims)
-    plt.savefig(summary_dir + str(sentence_spec_suite) + "_hexbins" + "_hexbin" + "_resid",
-                dpi=200)  
-#    plt.savefig(summary_dir + str(sentence_spec_suite) + "_band" + "_hexbin" + "_resid",
-#                dpi=200)    
+    plt.savefig(summary_dir + str(sentence_spec_suite) + "hexbins" + "_hexbin" + "_resid",
+                dpi=300)    
     plt.close()
         
     
@@ -173,12 +182,12 @@ if __name__ == "__main__":
     concat_propens = np.concatenate(uni_propens[:])
     hexbin_plot(concat_domain, concat_propens, xlbl=None, ylbl=None, log=True, alpha=1.0, 
                 edgecolors=None, cmap="Blues_r", gridsize=75, cbar=True)
-    for pred in mandel_preds:
-        plt.loglog(uni_domain, pred, "--")
+    for i, pred in enumerate(mandel_preds_uni):
+        plt.loglog(uni_domain, pred, "--", linewidth=0.5)
         
 #    plt.xlim((0.9, 50))
 #    plt.ylim((100, 1000))
-    plt.savefig(summary_dir + str(sentence_spec_suite) + "_band" + "_fits", dpi=200)    
+    plt.savefig(summary_dir + str(sentence_spec_suite) + "hexbins" + "_fits", dpi=300)    
     plt.close()        
     
     
@@ -189,46 +198,40 @@ if __name__ == "__main__":
     all_articles_ranks_freqs = get_stat(3, dir_prefix=stat_dir)
     split_levels_suite = ImprovedSpectrumSuite(
             [all_articles_ranks_freqs,
-            sentence_spec_suite.spectra[-1],
+#            sentence_spec_suite.spectra[-1],
             all_words_ranks_freqs], names=["articles", "sentences", "words"],
              suite_name="split_levels")
 
-    hexbin_plot(all_articles_ranks_freqs.domain, all_articles_ranks_freqs.propens, 
-                xlbl=None, ylbl=None, log=True, alpha=1.0, edgecolors="white", 
-                cmap="Blues_r", gridsize=75, cbar=True, linewidths=0.1, 
-                xscale="log", yscale="log", color="blue", label="articles")
-    
-#    hexbin_plot(sentence_spec_suite.spectra[-1].domain, 
-#                sentence_spec_suite.spectra[-1].propens, 
+#    hexbin_plot(all_articles_ranks_freqs.domain, all_articles_ranks_freqs.propens, 
 #                xlbl=None, ylbl=None, log=True, alpha=1.0, edgecolors="white", 
-#                cmap="Greens_r", gridsize=75, cbar=False, linewidths=0.1, 
-#                xscale="log", yscale="log")
-
-
-    hexbin_plot(all_words_ranks_freqs.domain, all_words_ranks_freqs.propens, 
-                xlbl=None, ylbl=None, log=True, alpha=1.0, edgecolors="white", 
-                cmap="Reds_r", gridsize=75, cbar=False, linewidths=0.1, 
-                xscale="log", yscale="log", color="red", label="words")
+#                cmap="Blues_r", gridsize=75, cbar=True, linewidths=0.1, 
+#                xscale="log", yscale="log", color="blue", label="articles")
+#    
+#
+#    hexbin_plot(all_words_ranks_freqs.domain, all_words_ranks_freqs.propens, 
+#                xlbl=None, ylbl=None, log=True, alpha=1.0, edgecolors="white", 
+#                cmap="Reds_r", gridsize=75, cbar=False, linewidths=0.1, 
+#                xscale="log", yscale="log", color="red", label="words")
+    
+    
+    split_levels_suite.plot("hexbin", ind=0, cmap="Blues_r")
+    split_levels_suite.plot("hexbin", ind=1, cmap="Reds_r", alpha=1., cbar=False)
     
     mandel = Mandelbrot.from_pickle(param_dir+str(all_words_ranks_freqs), to_class=True, 
                                           frequencies=all_words_ranks_freqs.propens, 
                                           ranks=all_words_ranks_freqs.domain)
-    words_preds = mandel.predict(mandel.optim_params, 
-                                 ranks=all_words_ranks_freqs.domain, 
-                                 n_obs=all_words_ranks_freqs.n_tokens)
+    words_preds = mandel.predict(mandel.optim_params)
     
     mandel = Mandelbrot.from_pickle(param_dir+str(all_articles_ranks_freqs), to_class=True, 
                                           frequencies=all_articles_ranks_freqs.propens, 
                                           ranks=all_articles_ranks_freqs.domain)
-    articles_preds = mandel.predict(mandel.optim_params, 
-                                    ranks=all_articles_ranks_freqs.domain, 
-                                 n_obs=all_articles_ranks_freqs.n_tokens)
+    articles_preds = mandel.predict(mandel.optim_params)
     
-    plt.loglog(all_words_ranks_freqs.domain, words_preds, "--", color="blue", label="words")
-    plt.loglog(all_articles_ranks_freqs.domain, articles_preds, "--", color="red", label="articles")
+    plt.plot(all_words_ranks_freqs.domain, words_preds, "--", color="blue", label="words")
+    plt.plot(all_articles_ranks_freqs.domain, articles_preds, "--", color="red", label="articles")
     
-    plt.legend()
-    plt.savefig(summary_dir + split_levels_suite.suite_name + "_hexbin_all", dpi=200)
+#    plt.legend()
+    plt.savefig(summary_dir + split_levels_suite.suite_name + "_hexbin_all", dpi=300)
     plt.close()
     
     print("\n" + lang + "CORRELATIONS")
@@ -240,7 +243,7 @@ if __name__ == "__main__":
                                                                    this_name="$\log$ frequency from articles",
                                                                    other_name="$\log$ frequency from words",
                                                                    show=False)
-    plt.savefig(summary_dir + "article_word_correlation", dpi=200)
+    plt.savefig(summary_dir + "article_word_correlation", dpi=300)
     plt.close()
     
     
@@ -251,13 +254,7 @@ if __name__ == "__main__":
     
     write_summary("CORRELATIONS:\t ARTICLE--SENTENCE\t ARTICLE--WORD")
     write_summary("\t\t", articles_sents_correl, "\t", articles_words_correl)    
-    
-
-    
-    #%% RESIDUALS
-    
-    
-    
+      
     
     #%% REPRESENTATIONS
     print("\n" + lang + ": REPRESENTATIONS", flush=True)
@@ -266,8 +263,8 @@ if __name__ == "__main__":
     all_sents_freqs_freq = get_stat(5, dir_prefix=stat_dir)
     all_sents_freqs_prob = get_stat(6, dir_prefix=stat_dir)
     
-    all_sents_freqs_freq.plot(plot_type="hex")
-    plt.savefig(summary_dir + str(all_sents_freqs_freq), dpi=200)
+    all_sents_freqs_freq.plot(plot_type="hexbin")
+    plt.savefig(summary_dir + str(all_sents_freqs_freq), dpi=300)
     plt.close()
 
     
@@ -277,53 +274,72 @@ if __name__ == "__main__":
     
     convergence_rank_suite = get_stat(7, open_f=ImprovedSpectrumSuite.from_pickle,
                                       dir_prefix=stat_dir)
-#    print(str(convergence_rank_suite))
-#    cmaps_cycler = plt.cycler(cmap = ["Purple", "Blue", "Green", "Orange", "Red"])
-# 
-#    for kwargs, (i, spec) in zip(cmaps_cycler, enumerate(convergence_rank_suite.spectra)):
-#        if i % 2 == 0:
-#            cur_col = kwargs["cmap"]
-#            print(cur_col)
-#            a = ((i+1)/len(convergence_rank_suite.spectra))
-#            hexbin_plot(spec.domain, spec.propens, 
-#                    xlbl=None, ylbl=None, log=True, alpha=a, edgecolors="white", 
-#                    cmap=cur_col + "s_r", gridsize=100, cbar=False, linewidths=0.3, 
-#                    xscale="log", yscale="log", color=cur_col.lower(), 
-#                    label=str(spec.n_tokens))
+
+#    concat_domain = np.concatenate(convergence_rank_suite.get_domains())
+#    concat_propens = np.concatenate(convergence_rank_suite.get_propens())
+#    hexbin_plot(concat_domain, concat_propens, xlbl="log rank", ylbl="log frequency", 
+#                        log=True, edgecolors=None, cmap="Blues_r")
 #    
-#    plt.colorbar()
-#    plt.legend()
-#    plt.ylim((1e-4, 1e-1))
-#    plt.savefig(summary_dir + str(convergence_rank_suite), dpi=300)
-#    plt.close()
+#    hexbin_plot(convergence_rank_suite.spectra[-9].domain, 
+#                convergence_rank_suite.spectra[-9].propens, xlbl="log rank", ylbl="log frequency", 
+#                log=True, edgecolors="green", linewidths=1.0, cmap="Blues",alpha=.7,
+#                cbar=False)
+#    
+#    hexbin_plot(convergence_rank_suite.spectra[-5].domain, 
+#                convergence_rank_suite.spectra[-5].propens, xlbl="log rank", ylbl="log frequency", 
+#                log=True, edgecolors="red", linewidths=1.0, cmap="Blues",alpha=.7,
+#                cbar=False)
+#    
+#    
+#    hexbin_plot(convergence_rank_suite.spectra[-1].domain, 
+#                convergence_rank_suite.spectra[-1].propens, xlbl="log rank", ylbl="log frequency", 
+#                log=True, edgecolors="black", linewidths=1.0, cmap="Blues",alpha=.7,
+#                cbar=False)
+    colors = ["purple", "blue", "green", "orange", "red"]
+    thinned_i = np.linspace(0, convergence_rank_suite.n_specs-1, 5).astype("int")
+    for c_i, i in enumerate(thinned_i):
+            hexbin_plot(convergence_rank_suite.spectra[i].domain, 
+                convergence_rank_suite.spectra[i].propens, xlbl="log rank", ylbl="log frequency", 
+                log=True, edgecolors=colors[c_i%len(colors)], cmap="Blues_r", linewidths=0.5, 
+                alpha=1-(c_i/convergence_rank_suite.n_specs/2),
+                cbar=False, label=str(convergence_rank_suite.spectra[i].n_tokens), color=colors[c_i%len(colors)])
     
     
-    from mpltools import color
+    plt.legend()
+    plt.colorbar()
     
+#    convergence_rank_suite.plot("hexbin_all")
     
-    
-    fig, ax = plt.subplots(ncols=1)
-    
-    ntoks = [spec.n_tokens for spec in convergence_rank_suite.spectra]
-    map_color = color.color_mapper((min(ntoks), max(ntoks)), cmap='BuPu')
-
-
-    for i, spec in enumerate(convergence_rank_suite.spectra):
-        if i % 3 == 0:
-            pos_x, pos_y = remove_zeros(spec.domain, spec.propens)
-            a = ((i+1)/convergence_rank_suite.n_specs)
-            hb = ax.hexbin(pos_x, pos_y, edgecolors="white", alpha=a,
-                           gridsize=75, linewidths=0.3, xscale="log", yscale="log",
-                           label=str(spec.n_tokens), mincnt=1, 
-                           cmap=map_color(spec.n_tokens))
-        
-        
-
-    fig.colorbar(hb)
-    
-
-    plt.ylim((1e-4, 1e-1))
+    plt.xlim((0.7, 10**4))
+    plt.ylim((1e-5, 1e-1))
     plt.savefig(summary_dir + str(convergence_rank_suite), dpi=300)
+    plt.close()
+
+
+
+
+
+
+
+    
+    convergence_rank_freq_suite = get_stat(8, open_f=ImprovedSpectrumSuite.from_pickle,
+                                      dir_prefix=stat_dir)    
+
+    colors = ["purple", "blue", "green", "orange", "red"]
+    thinned_i = np.linspace(0, convergence_rank_freq_suite.n_specs-1, 5).astype("int")
+    for c_i, i in enumerate(thinned_i):
+            hexbin_plot(convergence_rank_freq_suite.spectra[i].domain, 
+                convergence_rank_freq_suite.spectra[i].propens, xlbl="log rank", ylbl="log frequency", 
+                log=True, edgecolors=colors[c_i%len(colors)], cmap="Blues_r", linewidths=0.5, 
+                alpha=1-(i/convergence_rank_freq_suite.n_specs/2),
+                cbar=False, label=str(convergence_rank_freq_suite.spectra[i].n_tokens), color=colors[c_i%len(colors)])
+
+    plt.legend()
+    plt.colorbar()
+
+#    plt.xlim((1, 10**5))
+#    plt.ylim((1, 10**5))
+    plt.savefig(summary_dir + str(convergence_rank_freq_suite), dpi=300)
     plt.close()
     
     
@@ -332,41 +348,86 @@ if __name__ == "__main__":
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    exit(13)
-    
-    
-    convergence_freq_suite = get_stat(8, open_f=ImprovedSpectrumSuite.from_pickle,
+    convergence_freq_suite = get_stat(9, open_f=ImprovedSpectrumSuite.from_pickle,
                                       dir_prefix=stat_dir)
-    
+
+    colors = ["purple", "blue", "green", "orange", "red"]
+    for i in range(convergence_freq_suite.n_specs):
+            hexbin_plot(convergence_freq_suite.spectra[i].domain, 
+                convergence_freq_suite.spectra[i].propens, xlbl="log frequency", ylbl="log frequency of frequency", 
+                log=True, edgecolors=colors[i%len(colors)], cmap="Blues_r", linewidths=0.8, 
+                alpha=1-(i/convergence_freq_suite.n_specs/2),
+                cbar=False)
+
+    plt.colorbar()
+
+    plt.xlim((0.9, 1000))
+    plt.ylim((1e-4, 1))
+    plt.savefig(summary_dir + str(convergence_freq_suite), dpi=300)
+    plt.close()
     
     
     #%% HEAP
     print("\n" + lang + ": HEAP", flush=True)
 
-    heaps = get_stat(9, dir_prefix=stat_dir)
+    heaps = get_stat(10, dir_prefix=stat_dir)
+    
+    ImprovedHeap.pooled_plot(heaps, "hexbin", cmap="Blues_r", gridsize=50)
+    heaps[0].plot("hexbin", cmap="Reds_r", gridsize=100, cbar=False)
     
     
-    hapaxes = get_stat(10, dir_prefix=stat_dir)
+#    plt.legend()
+    plt.ylim((0, 5*10**5))
+    plt.ticklabel_format(style="sci", scilimits=(0, 0))
+    plt.savefig(summary_dir + "heaps", dpi=300)
+    plt.close()
+    
+    
+    
+    
+    
+    hapaxes = get_stat(11, dir_prefix=stat_dir)
+
+    
+    
+    suite_dir = param_dir + repr(hapaxes) + "/"
+    
+    estimates_for = {"all", 1, 2}
+    
+    print({n:h.domain for n, h in hapaxes.heaps.items()})
+    print({n:h.counts for n, h in hapaxes.heaps.items()})
+    heap_models = {n:(h, Heap.from_pickle(suite_dir+str(n), to_class=True, 
+                                          ns_types=h.counts, ns_tokens=hapaxes.domain))
+                    for n, h in hapaxes.heaps.items() if n in estimates_for}
+    
+#    print(heap_models)
+    heap_preds = {n:hm.predict(hm.optim_params, ns_tokens=hapaxes.domain) 
+                    for n, (h, hm) in heap_models.items()}
+    
+    print([(n, hapaxes.domain[-5:], hm.exog[-5:]) for n, (h, hm) in heap_models.items()])
+    
+    
+    
+    for n, h in hapaxes.heaps.items():
+        h.plot("hexbin", cbar=False)
+        if n in estimates_for:
+            plt.plot(h.domain, heap_preds[n], '--', color="red")
+    
+    plt.colorbar()
+    
+    plt.ylim((0, 1.5*10**4))
+    plt.ticklabel_format(style="sci", scilimits=(0, 0))
+    plt.savefig(summary_dir + "hapaxes", dpi=300)
+    plt.close()
+    
+    
+    
+    
+    
+    print(heaps[0].domain[-10:])
+    
+    print(hapaxes.domain[-10:])
+    
     
 
     

@@ -133,11 +133,13 @@ class ImprovedSpectrum:
     
     def plot(self, plot_type="hex", log=True, lbl=None, show=False, **plt_args):
         lbl_str = "$\log$ " if log else ""
-        xlbl = lbl_str + ("rank" if self.ranks else "frequency")
-        ylbl = lbl_str + ("frequency" if self.freqs else "normalised frequency")
-        if plot_type == "hex":
+        xlbl = lbl_str + "$r(w)$" # ("rank" if self.ranks else "frequency")
+        ylbl = lbl_str + "$f(w)$" #("frequency" if self.freqs else "normalised frequency")
+        if plot_type == "hexbin":
+            params = dict(edgecolors="white", linewidths=0.1, cmap="Blues_r")
+            params.update(plt_args)
             hexbin_plot(self.domain, self.propens,
-                        xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
+                        xlbl=xlbl, ylbl=ylbl, log=log, **params)
         elif plot_type == "scatter":
             simple_scatterplot(self.domain, self.propens, log=log,
                                lbl=lbl, xlbl=xlbl, ylbl=ylbl, **plt_args)
@@ -145,6 +147,8 @@ class ImprovedSpectrum:
         if show:
             plt.legend()
             plt.show()
+            
+            
     
     
     def correlate_with(self, other_spectrum, compute_correl=False, plot_correl=False,
@@ -153,8 +157,11 @@ class ImprovedSpectrum:
         self_propens, other_propens = self.propens[:min_max_r], other_spectrum.propens[:min_max_r]
         
         if plot_correl:
-            hexbin_plot(self_propens, other_propens, xlbl=this_name, 
-                        ylbl=this_name, log=log, **plt_args)
+            params = dict(edgecolors="white", linewidths=0.3, cmap="Blues_r")
+            params.update(plt_args)
+                        
+            hexbin_plot(self_propens, other_propens,
+                        xlbl=this_name, ylbl=other_name, log=log, **params)
         if show:
             plt.legend()
             plt.show()
@@ -234,7 +241,12 @@ class ImprovedSpectrumSuite:
         
         uni_domain = np.arange(1, min_max_r+1)
 
-        uni_propens = np.asarray([ps[:min_max_r] for ps in self.get_propens()])
+        uni_propens = [list(ps[:min_max_r]) for ps in self.get_propens()]
+
+#        print(min_max_r)
+#        print(list(map(len, uni_propens)))
+
+        uni_propens = np.asarray(uni_propens)
 
         return uni_domain, uni_propens              
         
@@ -245,17 +257,21 @@ class ImprovedSpectrumSuite:
         
         if plot_type.startswith("residual") and preds is None:
             raise ValueError("Need preds to calculate residuals!")
+    
+        if unify_domains:
+            domain, propens = self.unify_domains()
+        else:
+            domain, propens = self.get_domains(), self.get_propens()
         
         
-        uni_domain, uni_propens = self.unify_domains()
+#        means, mins, maxs = np.median(propens, axis=0),\
+#                            np.min(propens, axis=0),\
+#                            np.max(propens, axis=0)
         
-        means, mins, maxs = np.median(uni_propens, axis=0),\
-                            np.min(uni_propens, axis=0),\
-                            np.max(uni_propens, axis=0)
         
         lbl_str = "$\log$ " if log else ""
-        xlbl = lbl_str + "rank" # ("rank" if self.ranks else "frequency")
-        ylbl = lbl_str + "frequency" #("frequency" if self.freqs else "normalised frequency")
+        xlbl = lbl_str + "$r(w)$" # ("rank" if self.ranks else "frequency")
+        ylbl = lbl_str + "$f(w)$" #("frequency" if self.freqs else "normalised frequency")
         
         if ind is None:
             ind = rand.randint(len(self.spectra), dtype="int")
@@ -265,41 +281,47 @@ class ImprovedSpectrumSuite:
             params = dict(edgecolors="white", linewidths=0.3, cmap="Reds_r")
             params.update(plt_args)
             
-            hexbin_plot(uni_domain, uni_propens[ind],
+            d = domain if unify_domains else domain[ind]
+            
+            hexbin_plot(d, propens[ind],
                         xlbl=xlbl, ylbl=ylbl, log=log, **params)
-        
         elif plot_type == "hexbin_all":
             params = dict(edgecolors=None, cmap="Blues_r")
             params.update(plt_args)
             
-            concat_domain = np.tile(uni_domain, self.n_specs)
-            concat_propens = np.concatenate(uni_propens)
+            concat_domain = np.tile(domain, self.n_specs) if unify_domains else np.concatenate(domain)
+            concat_propens = np.concatenate(propens)
             
             hexbin_plot(concat_domain, concat_propens, xlbl=xlbl, ylbl=ylbl, 
                         log=log, **params)
 
         elif plot_type == "residual":
-            params = dict(edgecolors="white", cmap="Reds_r", linewidths=0.3)
+            params = dict(edgecolors="white", cmap="Reds_r", linewidths=0.1)
             params.update(plt_args)
             
-            resids = residuals(preds, uni_propens[ind], log=False)
-            hexbin_plot(uni_domain, resids, xlbl=xlbl, ylbl=ylbl, log=log,
+            d = domain if unify_domains else domain[ind]
+            resids = residuals(preds, propens[ind], log=False)
+            print("SHAPES", np.shape(d), np.shape(preds), 
+                  np.shape(propens[ind]), np.shape(resids))
+            hexbin_plot(d, resids, xlbl=xlbl, ylbl=ylbl, log=log,
                         **params)
+            plt.plot(d, np.ones_like(d), '--', linewidth=0.5, color="red")
 
 
         elif plot_type == "residual_all":
-            params = dict(edgecolors=None, cmap="Blues_r")
+            params = dict(edgecolors="white", cmap="Blues_r", linewidths=0.1)
             params.update(plt_args)
             
-            resids = residuals(preds, uni_propens, log=False)
-            concat_domain = np.tile(uni_domain, self.n_specs)
+            resids = residuals(preds, propens, log=False)
+            concat_domain = np.tile(domain, self.n_specs) if unify_domains else np.concatenate(domain)
             concat_resids = np.concatenate(resids)
-            print(concat_domain.shape, concat_resids.shape)
             hexbin_plot(concat_domain, concat_resids, 
                         xlbl=xlbl, ylbl=ylbl, log=log, **params)
+            plt.plot(concat_domain, np.ones_like(concat_domain), '--', linewidth=0.5, color="red")
+
 
         elif plot_type == "means":
-            hexbin_plot(uni_domain, means,
+            hexbin_plot(domain, means,
                         xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
         
         
@@ -333,9 +355,8 @@ class ImprovedSpectrumSuite:
     
     @classmethod
     def from_pickle(cls, dir_name, dir_prefix="./", suite_name=None):
-        my_name = None
-        if suite_name:
-            my_name = suite_name
+        if not suite_name:
+            suite_name = dir_name.replace("ImprovedSpectrumSuite_", "")
         
         files = os.listdir(dir_prefix + dir_name)
         try:
@@ -348,16 +369,8 @@ class ImprovedSpectrumSuite:
             with open(dir_prefix + dir_name + "/" + str(f) + ".pkl", "rb") as handle:
                 cur_spec = pickle.load(handle)
                 specs.append(cur_spec)        
-        return cls(specs, names, suite_name=my_name)
+        return cls(specs, names, suite_name=suite_name)
     
-    
-##%%
-#        
-#    
-#plt.fill_between([1,2,3], [10**1,10**2,10**3], [10**2,10**3,10**4], facecolor="grey", 
-#                 alpha=0.5)
-#plt.loglog([1,2,3], [10**1, 10**2, 10**3], "--", color="brown", linewidth=2.0)
-#plt.show()
 
 
 

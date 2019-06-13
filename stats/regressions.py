@@ -46,7 +46,7 @@ class Mandelbrot(GenericLikelihoodModel):
             return fit_res
         
         if (frequencies is None) or (ranks is None):
-            return ValueError("Mandelbrot class can only be instatiated with" 
+            raise ValueError("Mandelbrot class can only be instatiated with" 
                               "frequencies and ranks given!")
             
         mandel = cls(frequencies, ranks, **kwargs)
@@ -198,7 +198,7 @@ class Heap(GenericLikelihoodModel):
             return fit_res
         
         if (ns_types is None) or (ns_tokens is None):
-            return ValueError("Mandelbrot class can only be instatiated with" 
+            raise ValueError("Heap class can only be instatiated with" 
                               "frequencies and ranks given!")
             
         heap = cls(ns_types, ns_tokens, **kwargs)
@@ -264,7 +264,7 @@ class Heap(GenericLikelihoodModel):
         return super().fit(start_params=start_params, method=method, **kwargs)
     
     def predict(self, params, ns_tokens=None):
-        if not ns_tokens:
+        if ns_tokens is None:
             ns_tokens = self.exog
         ns_tokens = np.asarray(ns_tokens)
         
