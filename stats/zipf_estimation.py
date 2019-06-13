@@ -136,7 +136,7 @@ class ImprovedSpectrum:
         xlbl = lbl_str + "$r(w)$" # ("rank" if self.ranks else "frequency")
         ylbl = lbl_str + "$f(w)$" #("frequency" if self.freqs else "normalised frequency")
         if plot_type == "hexbin":
-            params = dict(edgecolors="white", linewidths=0.1, cmap="Blues_r")
+            params = dict(edgecolors="blue", linewidths=0.2, cmap="Blues_r")
             params.update(plt_args)
             hexbin_plot(self.domain, self.propens,
                         xlbl=xlbl, ylbl=ylbl, log=log, **params)
@@ -145,7 +145,7 @@ class ImprovedSpectrum:
                                lbl=lbl, xlbl=xlbl, ylbl=ylbl, **plt_args)
             
         if show:
-            plt.legend()
+#            plt.legend()
             plt.show()
             
             
@@ -157,13 +157,13 @@ class ImprovedSpectrum:
         self_propens, other_propens = self.propens[:min_max_r], other_spectrum.propens[:min_max_r]
         
         if plot_correl:
-            params = dict(edgecolors="white", linewidths=0.3, cmap="Blues_r")
+            params = dict(edgecolors="blue", linewidths=0.2, cmap="Blues_r")
             params.update(plt_args)
                         
             hexbin_plot(self_propens, other_propens,
                         xlbl=this_name, ylbl=other_name, log=log, **params)
         if show:
-            plt.legend()
+#            plt.legend()
             plt.show()
             
         if compute_correl:
@@ -243,9 +243,6 @@ class ImprovedSpectrumSuite:
 
         uni_propens = [list(ps[:min_max_r]) for ps in self.get_propens()]
 
-#        print(min_max_r)
-#        print(list(map(len, uni_propens)))
-
         uni_propens = np.asarray(uni_propens)
 
         return uni_domain, uni_propens              
@@ -278,7 +275,7 @@ class ImprovedSpectrumSuite:
         
         
         if plot_type == "hexbin":
-            params = dict(edgecolors="white", linewidths=0.3, cmap="Reds_r")
+            params = dict(edgecolors="red", linewidths=0.2, cmap="Reds_r")
             params.update(plt_args)
             
             d = domain if unify_domains else domain[ind]
@@ -286,7 +283,7 @@ class ImprovedSpectrumSuite:
             hexbin_plot(d, propens[ind],
                         xlbl=xlbl, ylbl=ylbl, log=log, **params)
         elif plot_type == "hexbin_all":
-            params = dict(edgecolors=None, cmap="Blues_r")
+            params = dict(edgecolors="blue", linewidths=0.2, cmap="Blues_r")
             params.update(plt_args)
             
             concat_domain = np.tile(domain, self.n_specs) if unify_domains else np.concatenate(domain)
@@ -296,20 +293,18 @@ class ImprovedSpectrumSuite:
                         log=log, **params)
 
         elif plot_type == "residual":
-            params = dict(edgecolors="white", cmap="Reds_r", linewidths=0.1)
+            params = dict(edgecolors="red", cmap="Reds_r", linewidths=0.2)
             params.update(plt_args)
             
             d = domain if unify_domains else domain[ind]
             resids = residuals(preds, propens[ind], log=False)
-            print("SHAPES", np.shape(d), np.shape(preds), 
-                  np.shape(propens[ind]), np.shape(resids))
             hexbin_plot(d, resids, xlbl=xlbl, ylbl=ylbl, log=log,
                         **params)
             plt.plot(d, np.ones_like(d), '--', linewidth=0.5, color="red")
 
 
         elif plot_type == "residual_all":
-            params = dict(edgecolors="white", cmap="Blues_r", linewidths=0.1)
+            params = dict(edgecolors="blue", cmap="Blues_r", linewidths=0.2)
             params.update(plt_args)
             
             resids = residuals(preds, propens, log=False)
@@ -320,12 +315,12 @@ class ImprovedSpectrumSuite:
             plt.plot(concat_domain, np.ones_like(concat_domain), '--', linewidth=0.5, color="red")
 
 
-        elif plot_type == "means":
-            hexbin_plot(domain, means,
-                        xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
+#        elif plot_type == "means":
+#            hexbin_plot(domain, means,
+#                        xlbl=xlbl, ylbl=ylbl, log=log, **plt_args)
         
         
-        plt.legend()
+#        plt.legend()
 
         if show:
             plt.show()

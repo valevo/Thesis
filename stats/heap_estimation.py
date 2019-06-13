@@ -81,32 +81,26 @@ class ImprovedHeap:
         for i in self.domain:
             counts = Counter(self.n_tokens_from_randomised(corpus, i))
             yield sum(map(lambda v: int(v == freq), counts.values()))
-
-            
-    def plot(self, log=True, lbl=None, show=False):
-        plot_f = plt.loglog if log else plt.plot
-        plot_f(self.domain, self.counts, '.', label=lbl)
-        plt.legend()
-        if show:
-            plt.show()
             
             
     def plot(self, plot_type, show=False, preds=None, **plt_args):
         xlbl, ylbl = "number of tokens", "number of types"
         if plot_type == "hexbin":
-            params = dict(edgecolors="white", linewidths=0.1, cmap="Blues_r")
+            params = dict(edgecolors="blue", linewidths=0.2, cmap="Blues_r")
             params.update(plt_args)
             
             hexbin_plot(self.domain, self.counts, xlbl=xlbl, ylbl=ylbl,
                         log=False, ignore_zeros=False, **params)
             
         elif plot_type == "residual":
-            params = dict(edgecolors="white", cmap="Blues_r", linewidths=0.1)
+            params = dict(edgecolors="blue", cmap="Blues_r", linewidths=0.2)
             params.update(plt_args)
             
             resids = residuals(preds, self.counts, log=False)
             hexbin_plot(self.domain, resids, xlbl=xlbl, ylbl="error", log=False,
                         ignore_zeros=False, **params)
+            plt.plot(self.domain, np.ones_like(self.domain), '--', 
+                     color="red", linewidth=0.5)
             
             
     @staticmethod
@@ -115,20 +109,22 @@ class ImprovedHeap:
         concat_domains = np.concatenate([h.domain for h in heaps])
         concat_counts = np.concatenate([h.counts for h in heaps])
         if plot_type == "hexbin":
-            params = dict(edgecolors="white", linewidths=0.1, cmap="Blues_r")
+            params = dict(edgecolors="blue", linewidths=0.2, cmap="Blues_r")
             params.update(plt_args)
             
             hexbin_plot(concat_domains, concat_counts, xlbl=xlbl, ylbl=ylbl,
                         log=False, ignore_zeros=False, **params)
             
         elif plot_type == "residual":
-            params = dict(edgecolors="white", linewidths=0.1, cmap="Blues_r")
+            params = dict(edgecolors="blue", linewidths=0.2, cmap="Blues_r")
             params.update(plt_args)
             
             concat_preds = np.concatenate(preds)
             resids = residuals(concat_preds, concat_counts, log=False)
             hexbin_plot(concat_domains, resids, xlbl=xlbl, ylbl="error", log=False,
                         ignore_zeros=False, **params)
+            plt.plot(concat_domains, np.ones_like(concat_domains), '--', 
+                     color="red", linewidth=0.5)
 
     
     def __repr__(self):
@@ -161,7 +157,7 @@ class ImprovedHeapSuite:
         for f, cur_heap in self.heaps.items():
             plot_f(self.domain, cur_heap.counts, '.', label=str(f))
         
-        plt.legend()
+#        plt.legend()
         if show:
             plt.show()
             
