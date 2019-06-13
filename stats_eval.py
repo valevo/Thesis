@@ -333,11 +333,13 @@ if __name__ == "__main__":
 
     heaps = get_stat(10, dir_prefix=stat_dir)
     
-    ImprovedHeap.pooled_plot(heaps, "hexbin", cmap="Blues_r", gridsize=50)
-    heaps[0].plot("hexbin", cmap="Reds_r", gridsize=100, cbar=False, edgecolors="red")
+    ImprovedHeap.pooled_plot(heaps, "hexbin", cmap="Blues_r", gridsize=50,
+                             color="blue", label="pooled")
+    heaps[0].plot("hexbin", cmap="Reds_r", gridsize=100, cbar=False, 
+         edgecolors="red", color="red", label="single")
     
     
-#    plt.legend()
+    plt.legend(loc="upper left")
     plt.ylim((0, 5*10**5))
     plt.ticklabel_format(style="sci", scilimits=(0, 0))
     plt.savefig(summary_dir + "heaps", dpi=300)
