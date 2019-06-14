@@ -16,7 +16,7 @@ mkdir "$TMPDIR"/Thesis
 cp -r $HOME/Thesis/stats "$TMPDIR"/Thesis
 cp -r $HOME/Thesis/Results "$TMPDIR"/Thesis
 cp -r $HOME/Thesis/utils "$TMPDIR"/Thesis
-cp -r $HOME/Thesis/stats_params.py "$TMPDIR"/Thesis
+cp -r $HOME/Thesis/stats_eval.py "$TMPDIR"/Thesis
 
 
 
