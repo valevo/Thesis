@@ -25,11 +25,11 @@ cd "$TMPDIR"/Thesis
 echo "Thesis copied; stats copied; current dir: `pwd`"
 
 
-#langs=(EO  FI  ID  KO  NO  TR  VI)
-#ns=(38269026 50000062 50000034 50000028 50003875 50000008 50000016)
+langs=(EO  FI  ID  KO  NO  TR  VI)
+ns=(38269026 50000062 50000034 50000028 50003875 50000008 50000016)
 
-langs=(EO TR)
-ns=(38269026 50000008)
+#langs=(EO TR)
+#ns=(38269026 50000008)
 
 for i in "${!langs[@]}"; do 
     echo "$i"
@@ -39,13 +39,10 @@ for i in "${!langs[@]}"; do
     cp -r $HOME/ThesisEstimationResults/${langs[$i]}/stats "$TMPDIR"/Thesis/Results/${langs[$i]}/
     echo "Copied stats folder"
     
-    python3.6 stats_eval.py --lang=${langs[$i]} --n=${ns[$i]} &
+    python3.6 stats_eval.py --lang=${langs[$i]} --n=${ns[$i]} 
     
     echo 
 done
-
-
-wait
 
 
 for i in "${!langs[@]}"; do 
