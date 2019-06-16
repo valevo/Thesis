@@ -229,7 +229,7 @@ if __name__ == "__main__":
     plt.savefig(summary_dir + split_levels_suite.suite_name + "_hexbin_all", dpi=300)
     plt.close()
     
-    print("\n" + lang + "CORRELATIONS")
+    print("\n" + lang + ": CORRELATIONS")
 
     
     articles_words_correl = all_articles_ranks_freqs.correlate_with(all_words_ranks_freqs, 
@@ -277,12 +277,13 @@ if __name__ == "__main__":
     
     colors = ["purple", "blue", "green", "orange", "red"]
     for c_i, i in enumerate(thinned_i):
+            print("\tCONV ", i)
             hexbin_plot(convergence_rank_suite.spectra[i].domain, 
                 convergence_rank_suite.spectra[i].propens, xlbl="log rank", ylbl="log frequency", 
                 log=True, edgecolors=colors[c_i%len(colors)], cmap="Blues_r", linewidths=0.5, 
                 alpha=1-(c_i/convergence_rank_suite.n_specs/2),
                 cbar=False, label=str(convergence_rank_suite.spectra[i].n_tokens), color=colors[c_i%len(colors)])
-    
+    print()
 
 
 #    plt.xlim((0.7, 10**4))
