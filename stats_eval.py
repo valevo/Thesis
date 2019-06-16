@@ -188,7 +188,7 @@ if __name__ == "__main__":
     concat_propens = np.concatenate(uni_propens[:])
     sentence_spec_suite.plot(plot_type="hexbin_all", cbar=True, edgecolors="blue",
                              color="blue", label="pooled")    
-    for i, pred in enumerate(mandel_preds_uni):
+    for i, pred in enumerate(mandel_preds_uni[:-1]):
         plt.loglog(uni_domain, pred, "--", linewidth=0.5)
         
 #    plt.xlim((0.9, 50))
@@ -271,8 +271,8 @@ if __name__ == "__main__":
     convergence_rank_suite = get_stat(7, open_f=ImprovedSpectrumSuite.from_pickle,
                                       dir_prefix=stat_dir)
     
-    thinned_i = np.linspace(0, convergence_rank_suite.n_specs-1, 5).astype("int")
-#    thinned_i = (np.linspace(0., 1., 5)**2*(convergence_rank_suite.n_specs-1)).astype("int")
+#    thinned_i = np.linspace(0, convergence_rank_suite.n_specs-1, 5).astype("int")
+    thinned_i = (np.linspace(0., 1., 5)**2*(convergence_rank_suite.n_specs-1)).astype("int")
 
     
     print([spec.n_tokens for spec in convergence_rank_suite.spectra])
@@ -344,7 +344,7 @@ if __name__ == "__main__":
     
     ImprovedHeap.pooled_plot(heaps, "hexbin", cmap="Blues_r", gridsize=50,
                              color="blue", label="pooled")
-    heaps[0].plot("hexbin", cmap="Reds_r", gridsize=100, cbar=False, 
+    heaps[0].plot("hexbin", cmap="Reds_r", gridsize=75, cbar=False, 
          edgecolors="red", color="red", label="single")
     
     
@@ -379,8 +379,8 @@ if __name__ == "__main__":
         h.plot("hexbin", cbar=False, edgecolors=colors[i%len(colors)],
                 label=str(n), color=colors[i%len(colors)], linewidths=0.5,
                 gridsize=50)
-        if n in estimates_for:
-            plt.plot(h.domain, heap_preds[n], '--', color="red")
+#        if n in estimates_for:
+#            plt.plot(h.domain, heap_preds[n], '--', color="red")
     
     plt.colorbar()
     plt.legend(loc="upper left")
