@@ -21,25 +21,47 @@ def remove_zeros(xs, ys=None):
     else:
         return list(filter(None, xs))
         
+
+def get_lims(xs, ys, log=False, equal_aspect=False):
+    lows = min(xs), min(ys)
+    highs = max(xs), max(ys)
     
-def get_lims(xs, ys, log=True):
     if log:
-        lower = 10**(-0.2)
+        c_low, c_high = (lambda x: x*0.8), (lambda x: x*1.2)   
     else:
-        lower = 0.
+        c_low, c_high = (lambda x: x*0.6), (lambda x: x*1.05)   
     
-#    lower = min([min(xs), min(ys)])
-#    lower -= 0.1*lower
+    if log:
+        lows = tuple(max(10**-10, l) for l in lows)
     
-    upper = max([max(xs), max(ys)])
-    upper += 0.1*upper
-    return lower, upper
+    if equal_aspect:
+        lims = (c_low(min(lows)),)*2, (c_high(max(highs)),)*2
+        return list(zip(*lims))
+    
+#    return (.9*lows[0], .9*lows[1]),\
+#                (1.1*highs[0], 1.1*highs[1])
+    return (c_low(lows[0]), c_high(highs[0])),\
+                (c_low(lows[1]), c_high(highs[1]))                    
+                
+    
+#def get_lims(xs, ys, log=True):
+#    if log:
+#        lower = 10**(-0.2)
+#    else:
+#        lower = 0.
+#    
+##    lower = min([min(xs), min(ys)])
+##    lower -= 0.1*lower
+#    
+#    upper = max([max(xs), max(ys)])
+#    upper += 0.1*upper
+#    return lower, upper
 
 
 
 def hexbin_plot(xs, ys, xlbl=None, ylbl=None, log=True,
                 ignore_zeros=True, cbar=True,
-                set_aspect=False, lims=None, **plt_args):
+                set_aspect=False, lims=None, equal_aspect=False, **plt_args):
         
     if ignore_zeros:
         pos_xs, pos_ys = remove_zeros(xs, ys)
@@ -55,15 +77,17 @@ def hexbin_plot(xs, ys, xlbl=None, ylbl=None, log=True,
         
     if cbar:
         plt.gcf().colorbar(hb)
-    if set_aspect:
-        plt.gca().set_aspect('equal', adjustable='datalim', anchor="C")
             
     if lims is None:
-        lims = get_lims(xs, ys, log=log)
-    print("LIMS", lims)
-    plt.xlim(lims)
-    plt.ylim(lims)
-    
+        lims_x, lims_y = get_lims(pos_xs, pos_ys, log=log, equal_aspect=equal_aspect)
+        print("LIMS: ", lims_x, lims_y)
+    plt.xlim(lims_x)
+    plt.ylim(lims_y)
+#    plt.autoscale(tight=False)
+
+
+    if set_aspect:
+        plt.gca().set_aspect('equal', adjustable='datalim', anchor="C")
     
     if xlbl:
         plt.xlabel(xlbl)
@@ -117,3 +141,8 @@ def simple_scatterplot(xs, ys, ignore_zeros=False, log=True, xlbl=None,
 #plt.hexbin(spec_words.domain, spec_words.propens, label="word")
 #plt.legend()
 #plt.show()
+        
+        
+def f(x=1, y=2):
+    return x+y
+    

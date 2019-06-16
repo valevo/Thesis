@@ -28,7 +28,7 @@ def residuals(preds, true_propens, log=True, rm_0=True):
         ratios = lg(preds) - log_propens
     else:
         ratios = np.asarray(preds)/np.asarray(true_propens)
-    ratios[np.isinf(ratios)] = lg(1e-10) if log else 1e-10
+    ratios[np.isinf(ratios)] = 0 # lg(1e-10) if log else 1e-10
     return ratios
 
 

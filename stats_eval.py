@@ -136,7 +136,7 @@ if __name__ == "__main__":
     
     sentence_spec_suite.plot("residual", ind=i, preds=mandel_preds[i], 
                              unify_domains=False, cmap="Blues_r", 
-                             edgecolor="blue", gridsize=150)
+                             edgecolor="blue", gridsize=75)
 #    x_lims = min(uni_domain)/2, max(uni_domain)*2
 #    y_lims = 10**(-2.5), 100
 #    plt.xlim(x_lims)
@@ -163,10 +163,12 @@ if __name__ == "__main__":
     
     #VAR IN RESIDUALS    
     sentence_spec_suite.plot(plot_type="residual_all", preds=mandel_preds_uni, 
-                             cbar=True, gridsize=150)
+                             cbar=True, gridsize=150,
+                             color="blue", label="pooled")
     randi = rand.randint(0, sentence_spec_suite.n_specs)
     sentence_spec_suite.plot(plot_type="residual", preds=mandel_preds_uni[randi],
-                             ind=randi, gridsize=175, cbar=False)
+                             ind=randi, gridsize=175, cbar=False,
+                             color="red", label="single")
     
 #    plt.plot(uni_domain, np.ones_like(uni_domain), "--", color="red",
 #             linewidth=0.5)    
@@ -175,6 +177,7 @@ if __name__ == "__main__":
 #    y_lims = 10**(-2.5), 100
 #    plt.xlim(x_lims)
 #    plt.ylim(y_lims)
+    plt.legend()
     plt.savefig(summary_dir + str(sentence_spec_suite) + "hexbins" + "_hexbin" + "_resid",
                 dpi=300)    
     plt.close()
@@ -340,7 +343,7 @@ if __name__ == "__main__":
     
     
     plt.legend(loc="upper left")
-    plt.ylim((0, 5*10**5))
+#    plt.ylim((0, 5*10**5))
     plt.ticklabel_format(style="sci", scilimits=(0, 0))
     plt.savefig(summary_dir + "heaps", dpi=300)
     plt.close()
@@ -365,7 +368,7 @@ if __name__ == "__main__":
                     for n, (h, hm) in heap_models.items()}   
     
     
-    colors = ["purple", "blue", "green", "orange", "red", "black"]
+    colors = ['orange', 'red', 'green', 'blue', 'purple', "black"]
     for i, (n, h) in enumerate(hapaxes.heaps.items()):
         h.plot("hexbin", cbar=False, edgecolors=colors[i%len(colors)],
                 label=str(n), color=colors[i%len(colors)], linewidths=0.5,
@@ -375,7 +378,7 @@ if __name__ == "__main__":
     
     plt.colorbar()
     plt.legend(loc="upper left")
-    plt.ylim((0, 1.5*10**4))
+#    plt.ylim((0, 1.5*10**4))
     plt.ticklabel_format(style="sci", scilimits=(0, 0))
     plt.savefig(summary_dir + "hapaxes", dpi=300)
     plt.close()
