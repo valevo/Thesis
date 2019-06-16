@@ -250,7 +250,7 @@ class ImprovedSpectrumSuite:
     
         
     def plot(self, plot_type, log=True, show=False, 
-             unify_domains=True, preds=None, ind=None, **plt_args):
+             unify_domains=False, preds=None, ind=None, **plt_args):
         
         if plot_type.startswith("residual") and preds is None:
             raise ValueError("Need preds to calculate residuals!")
@@ -266,9 +266,12 @@ class ImprovedSpectrumSuite:
 #                            np.max(propens, axis=0)
         
         
+        
+        use_ranks, use_freqs = self.spectra[0].ranks, self.spectra[0].freqs
         lbl_str = "$\log$ " if log else ""
-        xlbl = lbl_str + "$r(w)$" # ("rank" if self.ranks else "frequency")
-        ylbl = lbl_str + "$f(w)$" #("frequency" if self.freqs else "normalised frequency")
+        xlbl = lbl_str + "$r(w)$" if use_ranks else "$f(w)$"
+        ylbl = ("" if use_freqs else "normalised ") + lbl_str +\
+                    ("$f(w)$" if use_ranks else "$f(f(w))$")
         
         if ind is None:
             ind = rand.randint(len(self.spectra), dtype="int")
@@ -293,6 +296,7 @@ class ImprovedSpectrumSuite:
                         log=log, **params)
 
         elif plot_type == "residual":
+            ylbl = lbl_str + "$\hat{f}(w)/f(w)$"
             params = dict(edgecolors="red", cmap="Reds_r", linewidths=0.2)
             params.update(plt_args)
             
@@ -304,6 +308,7 @@ class ImprovedSpectrumSuite:
 
 
         elif plot_type == "residual_all":
+            ylbl = lbl_str + "$\hat{f}(w)/f(w)$"
             params = dict(edgecolors="blue", cmap="Blues_r", linewidths=0.2)
             params.update(plt_args)
             

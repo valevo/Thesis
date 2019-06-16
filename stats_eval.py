@@ -164,11 +164,11 @@ if __name__ == "__main__":
     #VAR IN RESIDUALS    
     sentence_spec_suite.plot(plot_type="residual_all", preds=mandel_preds_uni, 
                              cbar=True, gridsize=150,
-                             color="blue", label="pooled")
+                             color="blue", label="pooled", unify_domains=True)
     randi = rand.randint(0, sentence_spec_suite.n_specs)
     sentence_spec_suite.plot(plot_type="residual", preds=mandel_preds_uni[randi],
                              ind=randi, gridsize=175, cbar=False,
-                             color="red", label="single")
+                             color="red", label="single", unify_domains=True)
     
 #    plt.plot(uni_domain, np.ones_like(uni_domain), "--", color="red",
 #             linewidth=0.5)    
@@ -235,8 +235,8 @@ if __name__ == "__main__":
     articles_words_correl = all_articles_ranks_freqs.correlate_with(all_words_ranks_freqs, 
                                                                    compute_correl=True,
                                                                    plot_correl=True,
-                                                                   this_name="$\log$ frequency from articles",
-                                                                   other_name="$\log$ frequency from words",
+                                                                   this_name="$\log$ f(w) from articles",
+                                                                   other_name="$\log$ f(w) from words",
                                                                    show=False)
     plt.savefig(summary_dir + "article_word_correlation", dpi=300)
     plt.close()
@@ -272,14 +272,14 @@ if __name__ == "__main__":
                                       dir_prefix=stat_dir)
     
     thinned_i = np.linspace(0, convergence_rank_suite.n_specs-1, 5).astype("int")
+#    thinned_i = (np.linspace(0., 1., 5)**2*(convergence_rank_suite.n_specs-1)).astype("int")
 
     
-    
+    print([spec.n_tokens for spec in convergence_rank_suite.spectra])
     colors = ["purple", "blue", "green", "orange", "red"]
     for c_i, i in enumerate(thinned_i):
             print("\tCONV ", i)
-            hexbin_plot(convergence_rank_suite.spectra[i].domain, 
-                convergence_rank_suite.spectra[i].propens, xlbl="log rank", ylbl="log frequency", 
+            convergence_rank_suite.plot("hexbin", ind=i, 
                 log=True, edgecolors=colors[c_i%len(colors)], cmap="Blues_r", linewidths=0.5, 
                 alpha=1-(c_i/convergence_rank_suite.n_specs/2),
                 cbar=False, label=str(convergence_rank_suite.spectra[i].n_tokens), color=colors[c_i%len(colors)])
@@ -299,11 +299,16 @@ if __name__ == "__main__":
 
     colors = ["purple", "blue", "green", "orange", "red"]
     for c_i, i in enumerate(thinned_i):
-            hexbin_plot(convergence_rank_freq_suite.spectra[i].domain, 
-                convergence_rank_freq_suite.spectra[i].propens, xlbl="log rank", ylbl="log frequency", 
-                log=True, edgecolors=colors[c_i%len(colors)], cmap="Blues_r", linewidths=0.5, 
-                alpha=1-(i/convergence_rank_freq_suite.n_specs/2),
-                cbar=False, label=str(convergence_rank_freq_suite.spectra[i].n_tokens), color=colors[c_i%len(colors)])
+            convergence_rank_freq_suite.plot("hexbin", ind=i, edgecolors=colors[c_i%len(colors)], 
+                cmap="Blues_r", linewidths=0.5, alpha=1-(i/convergence_rank_freq_suite.n_specs/2),
+                cbar=False, label=str(convergence_rank_freq_suite.spectra[i].n_tokens), 
+                color=colors[c_i%len(colors)])
+
+#            hexbin_plot(convergence_rank_freq_suite.spectra[i].domain, 
+#                convergence_rank_freq_suite.spectra[i].propens, xlbl="log rank", ylbl="log frequency", 
+#                log=True, edgecolors=colors[c_i%len(colors)], cmap="Blues_r", linewidths=0.5, 
+#                alpha=1-(i/convergence_rank_freq_suite.n_specs/2),
+#                cbar=False, label=str(convergence_rank_freq_suite.spectra[i].n_tokens), color=colors[c_i%len(colors)])
 
     plt.legend()
     plt.colorbar()
@@ -317,12 +322,12 @@ if __name__ == "__main__":
                                       dir_prefix=stat_dir)
 
     colors = ["purple", "blue", "green", "orange", "red"]
-    for c_i, i in enumerate(thinned_i):            
-        hexbin_plot(convergence_freq_suite.spectra[i].domain, 
-                convergence_freq_suite.spectra[i].propens, xlbl="log frequency", ylbl="log frequency of frequency", 
-                log=True, edgecolors=colors[c_i%len(colors)], cmap="Blues_r", linewidths=0.5, 
+    for c_i, i in enumerate(thinned_i):
+        convergence_freq_suite.plot("hexbin", ind=i, 
+                edgecolors=colors[c_i%len(colors)], cmap="Blues_r", linewidths=0.5, 
                 alpha=1-(i/convergence_freq_suite.n_specs/2),
-                cbar=False, label=str(convergence_rank_freq_suite.spectra[i].n_tokens), color=colors[c_i%len(colors)])
+                cbar=False, label=str(convergence_rank_freq_suite.spectra[i].n_tokens), 
+                color=colors[c_i%len(colors)])
 
     plt.colorbar()
     plt.legend()
@@ -388,4 +393,3 @@ if __name__ == "__main__":
 #%%  
     
     plt.rcParams['agg.path.chunksize'] = orig_val
-    

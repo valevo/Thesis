@@ -84,7 +84,7 @@ class ImprovedHeap:
             
             
     def plot(self, plot_type, show=False, preds=None, **plt_args):
-        xlbl, ylbl = "number of tokens", "number of types"
+        xlbl, ylbl = "$n$", "$|V(n)|$"
         if plot_type == "hexbin":
             params = dict(edgecolors="blue", linewidths=0.2, cmap="Blues_r")
             params.update(plt_args)
@@ -105,7 +105,7 @@ class ImprovedHeap:
             
     @staticmethod
     def pooled_plot(heaps, plot_type, show=False, preds=None, **plt_args):
-        xlbl, ylbl = "number of tokens", "number of types"
+        xlbl, ylbl = "$n$", "$|V_k(n)|$"
         concat_domains = np.concatenate([h.domain for h in heaps])
         concat_counts = np.concatenate([h.counts for h in heaps])
         if plot_type == "hexbin":
