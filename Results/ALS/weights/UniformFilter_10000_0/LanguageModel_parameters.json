@@ -1,1 +1,0 @@
-{"vocab_size": 2000, "rnn_type": "GRU", "layer_sizes": {"embedding": 64, "rnn1": 256, "rnn2": 128}}
