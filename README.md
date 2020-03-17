@@ -5,7 +5,7 @@ __Master of Logic Thesis of Valentin Vogelmann__
 
 ### `/figures`
 
-Figures, tables and results, see `figures/README.md` for the list of contents.
+Figures, tables and results, see `figures/README.md` for navigation.
 
 ### `/data`
 
@@ -17,8 +17,9 @@ Language codes are : Esperanto - `EO`, Finnish - `FI`, Indonesian - `ID`, Korean
 
 Code used for generating subcorpora according to the Subsampling and Filtering methods and analysing those.
 
- - `/src/filtering`: 
- - `/src/jackknife`:
- - `/src/evaluation`:
- - `shell_scripts`: shell scripts to deploy Python code on SurfSARA's LISA computing cluster
+ - `/src/stats/`: Helper functionality such as calculation of ranks, frequencies, typicality or performing MLE
+ - `/src/subsampling`: Scripts to analyse the various aspect of the Subsampling method analysed in the thesis, such as variance and convergence
+ - `/src/filtering`: Implementations of the TypicalityFilter and SpeakerRestrictionFilter sampling algorithms, both sequential and parallelised versions (using Python's `multiprocessing` library)
+ - `/src/evaluation`: Functions and scripts for evaluation of filtering results, such as lexical diversity and Jaccard distance
+ - `shell_scripts`: Shell scripts to deploy Python code on SurfSARA's LISA computing cluster
 
