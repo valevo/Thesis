@@ -13,6 +13,8 @@ Linguistically pre-processed (see Section 2.1 for pipeline details) and subseque
 
 Language codes are : Esperanto - `EO`, Finnish - `FI`, Indonesian - `ID`, Korean - `KO`, Norwegian (the Bokmal variant) - `NO`, Turkish - `TR` and Vietnamese - `VI`.
 
+See Table 2.1 of the thesis for the basic size characteristics of the corpora.
+
 ### `/src`
 
 Code used for generating subcorpora according to the Subsampling and Filtering methods and analysing those.
