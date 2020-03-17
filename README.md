@@ -5,7 +5,7 @@ __Master of Logic Thesis of Valentin Vogelmann__
 
 ### `/figures`
 
-Figures, tables and results, see `figures/README.md` for navigation.
+Figures and tables, see `figures/README.md` for navigation.
 
 ### `/data`
 
