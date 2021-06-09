@@ -79,9 +79,9 @@ class Mandelbrot(GenericLikelihoodModel):
             return ((beta + ranks)**(-alpha))/zeta(alpha, q=beta+1.)
     
     
-    def loglike(self, params):
-        rs = self.exog
-        fs = self.endog
+    def loglike(self, params, ranks=None, freqs=None):
+        rs = self.exog if (ranks is None) else ranks 
+        fs = self.endog if (freqs is None) else freqs
         alpha, beta = params
         
 #        if alpha > 10 or beta > 20:
